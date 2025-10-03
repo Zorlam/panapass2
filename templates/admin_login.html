@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <!-- Strong viewport for mobile scaling and zoom prevention -->
+    <style>
+        * {
+            box-sizing: border-box; /* Global reset for consistent sizing */
+        }
+        html {
+            font-size: 16px; /* Base font for scaling */
+        }
+        body {
+            font-family: 'Courier New', monospace; /* Cyberpunk font */
+            background-color: #121212; /* Dark fallback background */
+            color: #e0e0e0; /* Light text */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll/zoom issues */
+            position: relative; /* For positioning the video */
+        }
+        #background-video {
+            position: fixed; /* Fixed to cover entire viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures video covers the area without distortion */
+            z-index: -1; /* Behind all content */
+        }
+        .login-container {
+            background-color: rgba(30, 30, 30, 0.9); /* Semi-transparent dark panel to overlay video */
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); /* Green neon glow */
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative; /* Above video */
+            z-index: 1; /* Ensure it's on top */
+        }
+        h1 {
+            color: #00ff00; /* Green header */
+            text-shadow: 0 0 5px #00ff00;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #e0e0e0;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #333;
+            border: 1px solid #00ff00;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            box-shadow: 0 0 10px #00ff00; /* Neon focus */
+            outline: none;
+        }
+        button {
+            background-color: #00ff00; /* Green button */
+            color: #121212;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            text-shadow: 0 0 3px #000;
+        }
+        button:hover {
+            background-color: #00cc00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        .error {
+            color: #66ff66; /* Light green for messages */
+            margin: 10px 0;
+        }
+        @media (max-width: 600px) { /* Mobile adjustments */
+            .login-container {
+                padding: 20px; /* Smaller padding */
+                max-width: 90%; /* Full width on small screens */
+            }
+            input, button {
+                font-size: 18px; /* Larger for touch */
+                padding: 12px; /* Easier tapping */
+            }
+            h1 {
+                font-size: 24px; /* Adjust header */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Video background -->
+    <video id="background-video" autoplay loop muted playsinline>
+        <source src="/static/background.mp4" type="video/mp4">
+        <!-- Fallback if video doesn't load -->
+        Your browser does not support the video tag.
+    </video>
+    
+    <div class="login-container">
+        <h1>Admin Login</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="error">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form action="/admin/login" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

