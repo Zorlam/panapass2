@@ -71,9 +71,12 @@
         }
         .dob-container select { flex: 1; padding: 15px; }  /* Match padding */
         .card-input-container { position: relative; }
+        .card-input-container input {
+            padding-left: 60px;  /* Add padding to left to make space for the icon */
+        }
         .card-brand {
             position: absolute;
-            right: 10px;
+            left: 10px;  /* Moved to the left */
             top: 50%;
             transform: translateY(-50%);
             width: 40px;
@@ -587,7 +590,7 @@ let currentStep = 1;
             });
         });
 
-        // Debounced Manejo de tarjeta (plain icon, no brand changes)
+        // Debounced Manejo de tarjeta
         const cardInput = document.getElementById('card_number');
         const cardBrandImg = document.getElementById('card-brand');
         let cardTimeout;
@@ -599,7 +602,25 @@ let currentStep = 1;
                 value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
                 e.target.value = value;
 
-                // Keep the icon plain (no brand changes)
+                // Fix cursor position for iOS and others
+                setTimeout(() => {
+                    const cursorPos = value.length;
+                    this.setSelectionRange(cursorPos, cursorPos);
+                }, isIOS ? 20 : 0);
+
+                // Dynamic brand detection
+                const brand = validateBin(value.replace(/\s/g, ''));
+                if (brand === 'Visa') {
+                    cardBrandImg.src = 'https://img.icons8.com/color/48/000000/visa.png';
+                } else if (brand === 'Mastercard') {
+                    cardBrandImg.src = 'https://img.icons8.com/color/48/000000/mastercard.png';
+                } else if (brand === 'American Express') {
+                    cardBrandImg.src = 'https://img.icons8.com/color/48/000000/amex.png';
+                } else if (brand === 'Discover') {
+                    cardBrandImg.src = 'https://img.icons8.com/color/48/000000/discover.png';
+                } else {
+                    cardBrandImg.src = 'https://img.icons8.com/ios-filled/50/000000/bank-card-back-side.png';
+                }
             }, 10);
         });
 
@@ -679,54 +700,51 @@ let currentStep = 1;
                 sum += digit;
                 shouldDouble = !shouldDouble;
             }
-            return sum % 10 === 0;
-        }
+            return sum % 10 === 0; }
 
-        // Validación BIN
-        function validateBin(cardNumber) {
-            const bin = cardNumber.substring(0, 6);
-            if (/^4/.test(bin)) return 'Visa';
-            if (/^5[1-5]/.test(bin)) return 'Mastercard';
-            if (/^3[47]/.test(bin)) return 'American Express';
-            if (/^6(?:011|5)/.test(bin)) return 'Discover';
-            return false;
-        }
+    // Validación BIN
+    function validateBin(cardNumber) {
+        const bin = cardNumber.substring(0, 6);
+        if (/^4/.test(bin)) return 'Visa';
+        if (/^5[1-5]/.test(bin)) return 'Mastercard';
+        if (/^3[47]/.test(bin)) return 'American Express';
+        if (/^6(?:011|5)/.test(bin)) return 'Discover';
+        return false;
+    }
 
-        // Clase de contenedor aleatoria
-        (function() {
-            var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
-            document.getElementById('dynamic-container').classList.add(randomClass);
-        })();
+    // Clase de contenedor aleatoria
+    (function() {
+        var randomClass = ['container-var1', 'container-var2', 'container-var3'][Math.floor(Math.random() * 3)];
+        document.getElementById('dynamic-container').classList.add(randomClass);
+    })();
 
-        function showError(id, message) {
-            const errorDiv = document.getElementById(id);
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            // Scroll to the field and highlight
-            const fieldId = id.replace('Error', '');
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                field.classList.add('error-field');
-                field.focus();
-            }
+    function showError(id, message) {
+        const errorDiv = document.getElementById(id);
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        // Scroll to the field and highlight
+        const fieldId = id.replace('Error', '');
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            field.classList.add('error-field');
+            field.focus();
         }
+    }
 
-        function clearErrors() {
-            const errors = document.querySelectorAll('.error');
-            errors.forEach(error => {
-                error.textContent = '';
-                error.style.display = 'none';
-            });
-            const fields = document.querySelectorAll('input, select');
-            fields.forEach(field => field.classList.remove('error-field'));
-        }
+    function clearErrors() {
+        const errors = document.querySelectorAll('.error');
+        errors.forEach(error => {
+            error.textContent = '';
+            error.style.display = 'none';
+        });
+        const fields = document.querySelectorAll('input, select');
+        fields.forEach(field => field.classList.remove('error-field'));
+    }
 
-        function clearError(id) {
-            const errorDiv = document.getElementById(id);
-            errorDiv.textContent = '';
-            errorDiv.style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+    function clearError(id) {
+        const errorDiv = document.getElementById(id);
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+    }
+</script>
